@@ -1,0 +1,115 @@
+{
+  "session_id": "20260913_051424",
+  "patient_id": "patient002",
+  "date": "2026-09-13T05:14:24.313795",
+  "total_duration_seconds": 403.2,
+  "exercises_completed": 7,
+  "avg_score": 100.0,
+  "exercises": [
+    {
+      "exercise_name": "Flexion coude droit",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 115.0,
+      "max_amplitude": 120.4,
+      "compensations_count": 0,
+      "duration_seconds": 39.7,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion epaule droite",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 150.8,
+      "max_amplitude": 157.3,
+      "compensations_count": 0,
+      "duration_seconds": 30.3,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion epaule gauche",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 98.3,
+      "max_amplitude": 116.1,
+      "compensations_count": 0,
+      "duration_seconds": 38.9,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Inclinaison tronc gauche (assis)",
+      "total_reps": 8,
+      "target_reps": 8,
+      "avg_amplitude": 25.1,
+      "max_amplitude": 32.0,
+      "compensations_count": 0,
+      "duration_seconds": 76.5,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Transfert de poids lateral (debout)",
+      "total_reps": 8,
+      "target_reps": 8,
+      "avg_amplitude": 21.5,
+      "max_amplitude": 40.5,
+      "compensations_count": 0,
+      "duration_seconds": 49.9,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion hanche droite",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 83.1,
+      "max_amplitude": 101.5,
+      "compensations_count": 0,
+      "duration_seconds": 51.7,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Extension genou gauche",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 91.6,
+      "max_amplitude": 108.3,
+      "compensations_count": 0,
+      "duration_seconds": 42.2,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    }
+  ]
+}

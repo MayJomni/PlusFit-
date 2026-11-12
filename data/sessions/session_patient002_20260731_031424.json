@@ -1,0 +1,115 @@
+{
+  "session_id": "20260731_031424",
+  "patient_id": "patient002",
+  "date": "2026-07-31T03:14:24.313795",
+  "total_duration_seconds": 477.7,
+  "exercises_completed": 6,
+  "avg_score": 91.3,
+  "exercises": [
+    {
+      "exercise_name": "Extension genou gauche",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 84.4,
+      "max_amplitude": 99.8,
+      "compensations_count": 0,
+      "duration_seconds": 80.5,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion epaule gauche",
+      "total_reps": 9,
+      "target_reps": 10,
+      "avg_amplitude": 109.0,
+      "max_amplitude": 117.6,
+      "compensations_count": 0,
+      "duration_seconds": 51.2,
+      "score": 96.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion coude droit",
+      "total_reps": 8,
+      "target_reps": 10,
+      "avg_amplitude": 110.9,
+      "max_amplitude": 128.4,
+      "compensations_count": 3,
+      "duration_seconds": 58.1,
+      "score": 83.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 3,
+        "types": {
+          "HIP_SHIFT": {
+            "count": 3,
+            "max_severity": "mild"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Flexion epaule droite",
+      "total_reps": 8,
+      "target_reps": 10,
+      "avg_amplitude": 82.7,
+      "max_amplitude": 95.2,
+      "compensations_count": 0,
+      "duration_seconds": 44.3,
+      "score": 92.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Inclinaison tronc gauche (assis)",
+      "total_reps": 7,
+      "target_reps": 8,
+      "avg_amplitude": 15.4,
+      "max_amplitude": 22.7,
+      "compensations_count": 3,
+      "duration_seconds": 86.7,
+      "score": 86.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 3,
+        "types": {
+          "SHOULDER_ELEVATION": {
+            "count": 3,
+            "max_severity": "moderate"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Flexion hanche droite",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 96.4,
+      "max_amplitude": 113.5,
+      "compensations_count": 3,
+      "duration_seconds": 30.5,
+      "score": 91.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 3,
+        "types": {
+          "HIP_SHIFT": {
+            "count": 3,
+            "max_severity": "moderate"
+          }
+        }
+      }
+    }
+  ]
+}

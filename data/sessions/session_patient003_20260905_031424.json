@@ -1,0 +1,125 @@
+{
+  "session_id": "20260905_031424",
+  "patient_id": "patient003",
+  "date": "2026-09-05T03:14:24.321967",
+  "total_duration_seconds": 551.0,
+  "exercises_completed": 7,
+  "avg_score": 96.0,
+  "exercises": [
+    {
+      "exercise_name": "Flexion hanche droite",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 95.7,
+      "max_amplitude": 109.2,
+      "compensations_count": 0,
+      "duration_seconds": 65.3,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Transfert de poids lateral (debout)",
+      "total_reps": 8,
+      "target_reps": 8,
+      "avg_amplitude": 13.7,
+      "max_amplitude": 22.4,
+      "compensations_count": 2,
+      "duration_seconds": 44.3,
+      "score": 94.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 2,
+        "types": {
+          "SHOULDER_ELEVATION": {
+            "count": 2,
+            "max_severity": "mild"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Flexion epaule gauche",
+      "total_reps": 9,
+      "target_reps": 10,
+      "avg_amplitude": 141.4,
+      "max_amplitude": 154.8,
+      "compensations_count": 2,
+      "duration_seconds": 48.6,
+      "score": 90.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 2,
+        "types": {
+          "SHOULDER_ELEVATION": {
+            "count": 2,
+            "max_severity": "mild"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Abduction epaule gauche",
+      "total_reps": 9,
+      "target_reps": 10,
+      "avg_amplitude": 82.2,
+      "max_amplitude": 90.7,
+      "compensations_count": 0,
+      "duration_seconds": 81.4,
+      "score": 96.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Extension genou gauche",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 117.3,
+      "max_amplitude": 134.5,
+      "compensations_count": 0,
+      "duration_seconds": 78.7,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion coude droit",
+      "total_reps": 9,
+      "target_reps": 10,
+      "avg_amplitude": 127.8,
+      "max_amplitude": 142.7,
+      "compensations_count": 0,
+      "duration_seconds": 71.0,
+      "score": 96.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion bilaterale epaules",
+      "total_reps": 9,
+      "target_reps": 10,
+      "avg_amplitude": 124.4,
+      "max_amplitude": 143.9,
+      "compensations_count": 0,
+      "duration_seconds": 35.0,
+      "score": 96.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "session_id": "20260820_041424",
+  "patient_id": "patient002",
+  "date": "2026-08-20T04:14:24.313795",
+  "total_duration_seconds": 279.5,
+  "exercises_completed": 4,
+  "avg_score": 100.0,
+  "exercises": [
+    {
+      "exercise_name": "Flexion epaule gauche",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 146.0,
+      "max_amplitude": 156.5,
+      "compensations_count": 0,
+      "duration_seconds": 59.9,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion epaule droite",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 131.3,
+      "max_amplitude": 142.6,
+      "compensations_count": 0,
+      "duration_seconds": 32.5,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Transfert de poids lateral (debout)",
+      "total_reps": 8,
+      "target_reps": 8,
+      "avg_amplitude": 17.5,
+      "max_amplitude": 26.1,
+      "compensations_count": 0,
+      "duration_seconds": 61.0,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion bilaterale epaules",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 89.7,
+      "max_amplitude": 100.2,
+      "compensations_count": 0,
+      "duration_seconds": 62.6,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "session_id": "20260912_011424",
+  "patient_id": "patient003",
+  "date": "2026-09-12T01:14:24.321967",
+  "total_duration_seconds": 452.9,
+  "exercises_completed": 5,
+  "avg_score": 99.4,
+  "exercises": [
+    {
+      "exercise_name": "Flexion epaule gauche",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 99.6,
+      "max_amplitude": 116.6,
+      "compensations_count": 0,
+      "duration_seconds": 39.7,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion coude droit",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 120.2,
+      "max_amplitude": 136.0,
+      "compensations_count": 1,
+      "duration_seconds": 64.7,
+      "score": 97.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 1,
+        "types": {
+          "HIP_SHIFT": {
+            "count": 1,
+            "max_severity": "moderate"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Abduction epaule gauche",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 78.7,
+      "max_amplitude": 95.9,
+      "compensations_count": 0,
+      "duration_seconds": 67.9,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion bilaterale epaules",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 92.8,
+      "max_amplitude": 100.4,
+      "compensations_count": 0,
+      "duration_seconds": 38.9,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion epaule droite",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 146.0,
+      "max_amplitude": 155.7,
+      "compensations_count": 0,
+      "duration_seconds": 81.6,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    }
+  ]
+}

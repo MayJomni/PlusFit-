@@ -1,0 +1,90 @@
+{
+  "session_id": "20260725_221424",
+  "patient_id": "patient002",
+  "date": "2026-07-25T22:14:24.313795",
+  "total_duration_seconds": 313.1,
+  "exercises_completed": 4,
+  "avg_score": 93.0,
+  "exercises": [
+    {
+      "exercise_name": "Flexion epaule droite",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 143.8,
+      "max_amplitude": 150.3,
+      "compensations_count": 1,
+      "duration_seconds": 83.0,
+      "score": 97.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 1,
+        "types": {
+          "SHOULDER_ELEVATION": {
+            "count": 1,
+            "max_severity": "moderate"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Abduction epaule gauche",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 101.6,
+      "max_amplitude": 110.0,
+      "compensations_count": 1,
+      "duration_seconds": 46.7,
+      "score": 97.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 1,
+        "types": {
+          "SHOULDER_ELEVATION": {
+            "count": 1,
+            "max_severity": "moderate"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Flexion coude droit",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 102.6,
+      "max_amplitude": 112.4,
+      "compensations_count": 5,
+      "duration_seconds": 71.1,
+      "score": 85.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 5,
+        "types": {
+          "HIP_SHIFT": {
+            "count": 5,
+            "max_severity": "moderate"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Flexion bilaterale epaules",
+      "total_reps": 9,
+      "target_reps": 10,
+      "avg_amplitude": 141.1,
+      "max_amplitude": 154.8,
+      "compensations_count": 1,
+      "duration_seconds": 35.6,
+      "score": 93.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 1,
+        "types": {
+          "TRUNK_LEAN": {
+            "count": 1,
+            "max_severity": "moderate"
+          }
+        }
+      }
+    }
+  ]
+}

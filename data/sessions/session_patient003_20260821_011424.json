@@ -1,0 +1,110 @@
+{
+  "session_id": "20260821_011424",
+  "patient_id": "patient003",
+  "date": "2026-08-21T01:14:24.321967",
+  "total_duration_seconds": 370.2,
+  "exercises_completed": 5,
+  "avg_score": 82.8,
+  "exercises": [
+    {
+      "exercise_name": "Extension genou gauche",
+      "total_reps": 8,
+      "target_reps": 10,
+      "avg_amplitude": 91.1,
+      "max_amplitude": 97.6,
+      "compensations_count": 3,
+      "duration_seconds": 43.4,
+      "score": 83.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 3,
+        "types": {
+          "HIP_SHIFT": {
+            "count": 3,
+            "max_severity": "mild"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Flexion epaule gauche",
+      "total_reps": 7,
+      "target_reps": 10,
+      "avg_amplitude": 128.9,
+      "max_amplitude": 143.6,
+      "compensations_count": 5,
+      "duration_seconds": 69.1,
+      "score": 73.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 5,
+        "types": {
+          "HIP_SHIFT": {
+            "count": 5,
+            "max_severity": "moderate"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Transfert de poids lateral (debout)",
+      "total_reps": 7,
+      "target_reps": 8,
+      "avg_amplitude": 8.6,
+      "max_amplitude": 22.5,
+      "compensations_count": 2,
+      "duration_seconds": 68.6,
+      "score": 84.8,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 2,
+        "types": {
+          "SHOULDER_ELEVATION": {
+            "count": 2,
+            "max_severity": "moderate"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Flexion epaule droite",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 105.0,
+      "max_amplitude": 117.1,
+      "compensations_count": 3,
+      "duration_seconds": 38.1,
+      "score": 91.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 3,
+        "types": {
+          "HIP_SHIFT": {
+            "count": 3,
+            "max_severity": "mild"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Abduction epaule gauche",
+      "total_reps": 7,
+      "target_reps": 10,
+      "avg_amplitude": 111.4,
+      "max_amplitude": 125.4,
+      "compensations_count": 2,
+      "duration_seconds": 56.6,
+      "score": 82.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 2,
+        "types": {
+          "HIP_SHIFT": {
+            "count": 2,
+            "max_severity": "moderate"
+          }
+        }
+      }
+    }
+  ]
+}

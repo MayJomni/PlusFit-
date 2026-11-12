@@ -1,0 +1,100 @@
+{
+  "session_id": "20260808_021424",
+  "patient_id": "patient002",
+  "date": "2026-08-08T02:14:24.313795",
+  "total_duration_seconds": 381.9,
+  "exercises_completed": 5,
+  "avg_score": 94.0,
+  "exercises": [
+    {
+      "exercise_name": "Flexion coude droit",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 129.7,
+      "max_amplitude": 136.5,
+      "compensations_count": 0,
+      "duration_seconds": 44.6,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion bilaterale epaules",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 117.9,
+      "max_amplitude": 130.9,
+      "compensations_count": 3,
+      "duration_seconds": 68.8,
+      "score": 91.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 3,
+        "types": {
+          "HIP_SHIFT": {
+            "count": 3,
+            "max_severity": "mild"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Abduction epaule gauche",
+      "total_reps": 9,
+      "target_reps": 10,
+      "avg_amplitude": 136.1,
+      "max_amplitude": 152.2,
+      "compensations_count": 2,
+      "duration_seconds": 70.8,
+      "score": 90.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 2,
+        "types": {
+          "HIP_SHIFT": {
+            "count": 2,
+            "max_severity": "mild"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Extension genou gauche",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 114.7,
+      "max_amplitude": 125.3,
+      "compensations_count": 2,
+      "duration_seconds": 53.3,
+      "score": 94.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 2,
+        "types": {
+          "TRUNK_LEAN": {
+            "count": 2,
+            "max_severity": "moderate"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Transfert de poids lateral (debout)",
+      "total_reps": 7,
+      "target_reps": 8,
+      "avg_amplitude": 15.7,
+      "max_amplitude": 21.9,
+      "compensations_count": 0,
+      "duration_seconds": 77.8,
+      "score": 95.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    }
+  ]
+}

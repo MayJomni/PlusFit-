@@ -1,0 +1,85 @@
+{
+  "session_id": "20260827_001424",
+  "patient_id": "patient003",
+  "date": "2026-08-27T00:14:24.321967",
+  "total_duration_seconds": 288.4,
+  "exercises_completed": 4,
+  "avg_score": 87.2,
+  "exercises": [
+    {
+      "exercise_name": "Flexion hanche droite",
+      "total_reps": 9,
+      "target_reps": 10,
+      "avg_amplitude": 46.0,
+      "max_amplitude": 51.3,
+      "compensations_count": 1,
+      "duration_seconds": 69.5,
+      "score": 86.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 1,
+        "types": {
+          "HIP_SHIFT": {
+            "count": 1,
+            "max_severity": "mild"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Extension genou gauche",
+      "total_reps": 9,
+      "target_reps": 10,
+      "avg_amplitude": 102.4,
+      "max_amplitude": 108.7,
+      "compensations_count": 0,
+      "duration_seconds": 34.5,
+      "score": 96.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion coude droit",
+      "total_reps": 8,
+      "target_reps": 10,
+      "avg_amplitude": 98.2,
+      "max_amplitude": 115.8,
+      "compensations_count": 1,
+      "duration_seconds": 33.4,
+      "score": 89.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 1,
+        "types": {
+          "SHOULDER_ELEVATION": {
+            "count": 1,
+            "max_severity": "moderate"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Inclinaison tronc gauche (assis)",
+      "total_reps": 6,
+      "target_reps": 8,
+      "avg_amplitude": 18.2,
+      "max_amplitude": 35.8,
+      "compensations_count": 4,
+      "duration_seconds": 35.9,
+      "score": 78.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 4,
+        "types": {
+          "SHOULDER_ELEVATION": {
+            "count": 4,
+            "max_severity": "moderate"
+          }
+        }
+      }
+    }
+  ]
+}

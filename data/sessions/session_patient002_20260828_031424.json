@@ -1,0 +1,100 @@
+{
+  "session_id": "20260828_031424",
+  "patient_id": "patient002",
+  "date": "2026-08-28T03:14:24.313795",
+  "total_duration_seconds": 474.4,
+  "exercises_completed": 6,
+  "avg_score": 100.0,
+  "exercises": [
+    {
+      "exercise_name": "Transfert de poids lateral (debout)",
+      "total_reps": 8,
+      "target_reps": 8,
+      "avg_amplitude": 19.4,
+      "max_amplitude": 38.8,
+      "compensations_count": 0,
+      "duration_seconds": 83.0,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion hanche droite",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 79.1,
+      "max_amplitude": 85.9,
+      "compensations_count": 0,
+      "duration_seconds": 63.4,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Inclinaison tronc gauche (assis)",
+      "total_reps": 8,
+      "target_reps": 8,
+      "avg_amplitude": 24.1,
+      "max_amplitude": 31.9,
+      "compensations_count": 0,
+      "duration_seconds": 74.7,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion epaule gauche",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 143.8,
+      "max_amplitude": 161.6,
+      "compensations_count": 0,
+      "duration_seconds": 35.0,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion epaule droite",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 131.3,
+      "max_amplitude": 150.7,
+      "compensations_count": 0,
+      "duration_seconds": 34.3,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion coude droit",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 119.2,
+      "max_amplitude": 130.5,
+      "compensations_count": 0,
+      "duration_seconds": 79.9,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    }
+  ]
+}

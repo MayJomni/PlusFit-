@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🪞 Miroir de Rééducation — Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #e2e8f0; }
+        
+        .header { background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 24px 32px; text-align: center; border-bottom: 3px solid #38bdf8; }
+        .header h1 { font-size: 28px; color: #f0f9ff; margin-bottom: 6px; }
+        .header p { color: #93c5fd; font-size: 14px; }
+        
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 24px 32px; }
+        .stat-card { background: #1e293b; border-radius: 12px; padding: 20px; text-align: center; border: 1px solid #334155; transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); border-color: #38bdf8; }
+        .stat-value { font-size: 36px; font-weight: 700; color: #38bdf8; }
+        .stat-label { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+        
+        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 0 32px 24px; }
+        .chart-card { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; }
+        .chart-card.full { grid-column: 1 / -1; }
+        .chart-card h3 { color: #f1f5f9; margin-bottom: 16px; font-size: 16px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+        .chart-card canvas { max-height: 300px; }
+        
+        .patient-tabs { display: flex; gap: 8px; padding: 0 32px 16px; }
+        .tab { padding: 10px 20px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; cursor: pointer; color: #94a3b8; font-weight: 600; transition: all 0.2s; }
+        .tab:hover { border-color: #38bdf8; color: #e2e8f0; }
+        .tab.active { background: #38bdf8; color: #0f172a; border-color: #38bdf8; }
+        
+        .table-card { background: #1e293b; border-radius: 12px; padding: 20px; margin: 0 32px 24px; border: 1px solid #334155; overflow-x: auto; }
+        .table-card h3 { color: #f1f5f9; margin-bottom: 16px; font-size: 16px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { background: #0f172a; color: #38bdf8; padding: 12px 16px; text-align: left; font-weight: 600; }
+        td { padding: 10px 16px; border-top: 1px solid #1e293b; }
+        tr:nth-child(even) { background: rgba(56, 189, 248, 0.05); }
+        tr:hover { background: rgba(56, 189, 248, 0.1); }
+        
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .badge-green { background: #065f46; color: #6ee7b7; }
+        .badge-yellow { background: #713f12; color: #fcd34d; }
+        .badge-red { background: #7f1d1d; color: #fca5a5; }
+        
+        .section-title { padding: 24px 32px 8px; font-size: 20px; color: #f1f5f9; }
+        
+        .footer { text-align: center; padding: 20px; color: #475569; font-size: 13px; border-top: 1px solid #1e293b; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🪞 Miroir de Rééducation — Dashboard</h1>
+    <p>Système de suivi des exercices de rééducation avec détection de pose IA (MoveNet)</p>
+</div>
+
+<div class="stats-row" id="stats-row"></div>
+
+<div class="patient-tabs" id="patient-tabs"></div>
+
+<div class="charts-grid">
+    <div class="chart-card">
+        <h3>📈 Évolution des scores par patient</h3>
+        <canvas id="scoreChart"></canvas>
+    </div>
+    <div class="chart-card">
+        <h3>📊 Compensations détectées par session</h3>
+        <canvas id="compChart"></canvas>
+    </div>
+    <div class="chart-card">
+        <h3>🏋️ Score moyen par exercice</h3>
+        <canvas id="exerciseChart"></canvas>
+    </div>
+    <div class="chart-card">
+        <h3>⏱️ Durée des sessions (minutes)</h3>
+        <canvas id="durationChart"></canvas>
+    </div>
+</div>
+
+<h2 class="section-title">📋 Détail des sessions</h2>
+<div class="table-card">
+    <table id="sessions-table">
+        <thead>
+            <tr>
+                <th>Patient</th>
+                <th>Date</th>
+                <th>Exercices</th>
+                <th>Score moyen</th>
+                <th>Durée</th>
+                <th>Compensations</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody id="sessions-tbody"></tbody>
+    </table>
+</div>
+
+<div class="footer">
+    Miroir de Rééducation v1.0 — Projet académique — Données de démonstration (3 patients, 19 sessions)
+</div>
+
+<script>
+// ─── Données des sessions (générées par le système) ───
+const sessions = [{"session_id": "20260902_231424", "patient_id": "patient001", "date": "2026-09-02T23:14:24.309781", "total_duration_seconds": 376.3, "exercises_completed": 4, "avg_score": 84.0, "exercises": [{"exercise_name": "Flexion hanche droite", "total_reps": 9, "target_reps": 10, "avg_amplitude": 71.4, "max_amplitude": 77.5, "compensations_count": 1, "duration_seconds": 47.7, "score": 93.0, "rep_details": [], "compensation_summary": {"total": 1, "types": {"SHOULDER_ELEVATION": {"count": 1, "max_severity": "moderate"}}}}, {"exercise_name": "Flexion epaule droite", "total_reps": 8, "target_reps": 10, "avg_amplitude": 91.9, "max_amplitude": 105.8, "compensations_count": 4, "duration_seconds": 44.4, "score": 80.0, "rep_details": [], "compensation_summary": {"total": 4, "types": {"TRUNK_LEAN": {"count": 4, "max_severity": "moderate"}}}}, {"exercise_name": "Transfert de poids lateral (debout)", "total_reps": 5, "target_reps": 8, "avg_amplitude": 5.6, "max_amplitude": 11.4, "compensations_count": 2, "duration_seconds": 83.1, "score": 65.8, "rep_details": [], "compensation_summary": {"total": 2, "types": {"SHOULDER_ELEVATION": {"count": 2, "max_severity": "mild"}}}}, {"exercise_name": "Abduction epaule gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 124.1, "max_amplitude": 134.4, "compensations_count": 1, "duration_seconds": 77.1, "score": 97.0, "rep_details": [], "compensation_summary": {"total": 1, "types": {"HIP_SHIFT": {"count": 1, "max_severity": "moderate"}}}}]}, {"session_id": "20260910_231424", "patient_id": "patient001", "date": "2026-09-10T23:14:24.309781", "total_duration_seconds": 569.8, "exercises_completed": 6, "avg_score": 87.4, "exercises": [{"exercise_name": "Extension genou gauche", "total_reps": 8, "target_reps": 10, "avg_amplitude": 120.7, "max_amplitude": 132.5, "compensations_count": 4, "duration_seconds": 63.7, "score": 80.0, "rep_details": [], "compensation_summary": {"total": 4, "types": {"SHOULDER_ELEVATION": {"count": 4, "max_severity": "moderate"}}}}, {"exercise_name": "Inclinaison tronc gauche (assis)", "total_reps": 7, "target_reps": 8, "avg_amplitude": 12.7, "max_amplitude": 31.3, "compensations_count": 0, "duration_seconds": 88.4, "score": 95.0, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion hanche droite", "total_reps": 9, "target_reps": 10, "avg_amplitude": 63.6, "max_amplitude": 75.7, "compensations_count": 3, "duration_seconds": 64.2, "score": 87.0, "rep_details": [], "compensation_summary": {"total": 3, "types": {"SHOULDER_ELEVATION": {"count": 3, "max_severity": "mild"}}}}, {"exercise_name": "Transfert de poids lateral (debout)", "total_reps": 6, "target_reps": 8, "avg_amplitude": 7.4, "max_amplitude": 24.7, "compensations_count": 2, "duration_seconds": 89.9, "score": 76.3, "rep_details": [], "compensation_summary": {"total": 2, "types": {"HIP_SHIFT": {"count": 2, "max_severity": "moderate"}}}}, {"exercise_name": "Flexion bilaterale epaules", "total_reps": 10, "target_reps": 10, "avg_amplitude": 85.6, "max_amplitude": 97.0, "compensations_count": 0, "duration_seconds": 57.1, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion epaule gauche", "total_reps": 8, "target_reps": 10, "avg_amplitude": 140.6, "max_amplitude": 156.1, "compensations_count": 2, "duration_seconds": 48.0, "score": 86.0, "rep_details": [], "compensation_summary": {"total": 2, "types": {"HIP_SHIFT": {"count": 2, "max_severity": "moderate"}}}}]}, {"session_id": "20260920_001424", "patient_id": "patient001", "date": "2026-09-20T00:14:24.309781", "total_duration_seconds": 585.7, "exercises_completed": 7, "avg_score": 94.5, "exercises": [{"exercise_name": "Inclinaison tronc gauche (assis)", "total_reps": 8, "target_reps": 8, "avg_amplitude": 15.9, "max_amplitude": 32.2, "compensations_count": 3, "duration_seconds": 88.2, "score": 91.0, "rep_details": [], "compensation_summary": {"total": 3, "types": {"HIP_SHIFT": {"count": 3, "max_severity": "mild"}}}}, {"exercise_name": "Extension genou gauche", "total_reps": 9, "target_reps": 10, "avg_amplitude": 59.3, "max_amplitude": 65.9, "compensations_count": 0, "duration_seconds": 48.1, "score": 91.4, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Transfert de poids lateral (debout)", "total_reps": 7, "target_reps": 8, "avg_amplitude": 9.5, "max_amplitude": 29.0, "compensations_count": 0, "duration_seconds": 87.1, "score": 93.4, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion coude droit", "total_reps": 9, "target_reps": 10, "avg_amplitude": 121.3, "max_amplitude": 133.5, "compensations_count": 0, "duration_seconds": 50.1, "score": 96.0, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion epaule gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 116.3, "max_amplitude": 124.4, "compensations_count": 1, "duration_seconds": 36.0, "score": 97.0, "rep_details": [], "compensation_summary": {"total": 1, "types": {"TRUNK_LEAN": {"count": 1, "max_severity": "mild"}}}}, {"exercise_name": "Flexion epaule droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 120.5, "max_amplitude": 129.2, "compensations_count": 1, "duration_seconds": 43.4, "score": 97.0, "rep_details": [], "compensation_summary": {"total": 1, "types": {"TRUNK_LEAN": {"count": 1, "max_severity": "mild"}}}}, {"exercise_name": "Abduction epaule gauche", "total_reps": 9, "target_reps": 10, "avg_amplitude": 105.7, "max_amplitude": 115.1, "compensations_count": 0, "duration_seconds": 65.7, "score": 96.0, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}]}, {"session_id": "20260924_231424", "patient_id": "patient001", "date": "2026-09-24T23:14:24.309781", "total_duration_seconds": 573.3, "exercises_completed": 7, "avg_score": 99.5, "exercises": [{"exercise_name": "Flexion hanche droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 59.1, "max_amplitude": 65.0, "compensations_count": 0, "duration_seconds": 43.9, "score": 99.6, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Transfert de poids lateral (debout)", "total_reps": 8, "target_reps": 8, "avg_amplitude": 12.6, "max_amplitude": 28.5, "compensations_count": 0, "duration_seconds": 54.3, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion epaule gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 115.4, "max_amplitude": 130.1, "compensations_count": 0, "duration_seconds": 42.2, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion epaule droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 104.9, "max_amplitude": 115.4, "compensations_count": 0, "duration_seconds": 57.1, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion coude droit", "total_reps": 10, "target_reps": 10, "avg_amplitude": 100.2, "max_amplitude": 106.6, "compensations_count": 0, "duration_seconds": 78.1, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Abduction epaule gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 98.3, "max_amplitude": 110.5, "compensations_count": 0, "duration_seconds": 51.0, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion bilaterale epaules", "total_reps": 10, "target_reps": 10, "avg_amplitude": 129.2, "max_amplitude": 135.9, "compensations_count": 1, "duration_seconds": 74.0, "score": 97.0, "rep_details": [], "compensation_summary": {"total": 1, "types": {"TRUNK_LEAN": {"count": 1, "max_severity": "moderate"}}}}]}, {"session_id": "20261003_231424", "patient_id": "patient001", "date": "2026-10-03T23:14:24.309781", "total_duration_seconds": 471.4, "exercises_completed": 5, "avg_score": 97.6, "exercises": [{"exercise_name": "Flexion coude droit", "total_reps": 10, "target_reps": 10, "avg_amplitude": 128.3, "max_amplitude": 144.5, "compensations_count": 1, "duration_seconds": 89.4, "score": 97.0, "rep_details": [], "compensation_summary": {"total": 1, "types": {"TRUNK_LEAN": {"count": 1, "max_severity": "moderate"}}}}, {"exercise_name": "Extension genou gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 103.0, "max_amplitude": 117.2, "compensations_count": 1, "duration_seconds": 44.9, "score": 97.0, "rep_details": [], "compensation_summary": {"total": 1, "types": {"HIP_SHIFT": {"count": 1, "max_severity": "moderate"}}}}, {"exercise_name": "Flexion hanche droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 83.7, "max_amplitude": 97.6, "compensations_count": 1, "duration_seconds": 30.5, "score": 97.0, "rep_details": [], "compensation_summary": {"total": 1, "types": {"SHOULDER_ELEVATION": {"count": 1, "max_severity": "mild"}}}}, {"exercise_name": "Flexion epaule gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 123.1, "max_amplitude": 140.1, "compensations_count": 0, "duration_seconds": 89.1, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion epaule droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 137.6, "max_amplitude": 147.9, "compensations_count": 1, "duration_seconds": 68.0, "score": 97.0, "rep_details": [], "compensation_summary": {"total": 1, "types": {"HIP_SHIFT": {"count": 1, "max_severity": "moderate"}}}}]}, {"session_id": "20260725_221424", "patient_id": "patient002", "date": "2026-07-25T22:14:24.313795", "total_duration_seconds": 313.1, "exercises_completed": 4, "avg_score": 93.0, "exercises": [{"exercise_name": "Flexion epaule droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 143.8, "max_amplitude": 150.3, "compensations_count": 1, "duration_seconds": 83.0, "score": 97.0, "rep_details": [], "compensation_summary": {"total": 1, "types": {"SHOULDER_ELEVATION": {"count": 1, "max_severity": "moderate"}}}}, {"exercise_name": "Abduction epaule gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 101.6, "max_amplitude": 110.0, "compensations_count": 1, "duration_seconds": 46.7, "score": 97.0, "rep_details": [], "compensation_summary": {"total": 1, "types": {"SHOULDER_ELEVATION": {"count": 1, "max_severity": "moderate"}}}}, {"exercise_name": "Flexion coude droit", "total_reps": 10, "target_reps": 10, "avg_amplitude": 102.6, "max_amplitude": 112.4, "compensations_count": 5, "duration_seconds": 71.1, "score": 85.0, "rep_details": [], "compensation_summary": {"total": 5, "types": {"HIP_SHIFT": {"count": 5, "max_severity": "moderate"}}}}, {"exercise_name": "Flexion bilaterale epaules", "total_reps": 9, "target_reps": 10, "avg_amplitude": 141.1, "max_amplitude": 154.8, "compensations_count": 1, "duration_seconds": 35.6, "score": 93.0, "rep_details": [], "compensation_summary": {"total": 1, "types": {"TRUNK_LEAN": {"count": 1, "max_severity": "moderate"}}}}]}, {"session_id": "20260731_031424", "patient_id": "patient002", "date": "2026-07-31T03:14:24.313795", "total_duration_seconds": 477.7, "exercises_completed": 6, "avg_score": 91.3, "exercises": [{"exercise_name": "Extension genou gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 84.4, "max_amplitude": 99.8, "compensations_count": 0, "duration_seconds": 80.5, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion epaule gauche", "total_reps": 9, "target_reps": 10, "avg_amplitude": 109.0, "max_amplitude": 117.6, "compensations_count": 0, "duration_seconds": 51.2, "score": 96.0, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion coude droit", "total_reps": 8, "target_reps": 10, "avg_amplitude": 110.9, "max_amplitude": 128.4, "compensations_count": 3, "duration_seconds": 58.1, "score": 83.0, "rep_details": [], "compensation_summary": {"total": 3, "types": {"HIP_SHIFT": {"count": 3, "max_severity": "mild"}}}}, {"exercise_name": "Flexion epaule droite", "total_reps": 8, "target_reps": 10, "avg_amplitude": 82.7, "max_amplitude": 95.2, "compensations_count": 0, "duration_seconds": 44.3, "score": 92.0, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Inclinaison tronc gauche (assis)", "total_reps": 7, "target_reps": 8, "avg_amplitude": 15.4, "max_amplitude": 22.7, "compensations_count": 3, "duration_seconds": 86.7, "score": 86.0, "rep_details": [], "compensation_summary": {"total": 3, "types": {"SHOULDER_ELEVATION": {"count": 3, "max_severity": "moderate"}}}}, {"exercise_name": "Flexion hanche droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 96.4, "max_amplitude": 113.5, "compensations_count": 3, "duration_seconds": 30.5, "score": 91.0, "rep_details": [], "compensation_summary": {"total": 3, "types": {"HIP_SHIFT": {"count": 3, "max_severity": "moderate"}}}}]}, {"session_id": "20260808_021424", "patient_id": "patient002", "date": "2026-08-08T02:14:24.313795", "total_duration_seconds": 381.9, "exercises_completed": 5, "avg_score": 94.0, "exercises": [{"exercise_name": "Flexion coude droit", "total_reps": 10, "target_reps": 10, "avg_amplitude": 129.7, "max_amplitude": 136.5, "compensations_count": 0, "duration_seconds": 44.6, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion bilaterale epaules", "total_reps": 10, "target_reps": 10, "avg_amplitude": 117.9, "max_amplitude": 130.9, "compensations_count": 3, "duration_seconds": 68.8, "score": 91.0, "rep_details": [], "compensation_summary": {"total": 3, "types": {"HIP_SHIFT": {"count": 3, "max_severity": "mild"}}}}, {"exercise_name": "Abduction epaule gauche", "total_reps": 9, "target_reps": 10, "avg_amplitude": 136.1, "max_amplitude": 152.2, "compensations_count": 2, "duration_seconds": 70.8, "score": 90.0, "rep_details": [], "compensation_summary": {"total": 2, "types": {"HIP_SHIFT": {"count": 2, "max_severity": "mild"}}}}, {"exercise_name": "Extension genou gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 114.7, "max_amplitude": 125.3, "compensations_count": 2, "duration_seconds": 53.3, "score": 94.0, "rep_details": [], "compensation_summary": {"total": 2, "types": {"TRUNK_LEAN": {"count": 2, "max_severity": "moderate"}}}}, {"exercise_name": "Transfert de poids lateral (debout)", "total_reps": 7, "target_reps": 8, "avg_amplitude": 15.7, "max_amplitude": 21.9, "compensations_count": 0, "duration_seconds": 77.8, "score": 95.0, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}]}, {"session_id": "20260813_051424", "patient_id": "patient002", "date": "2026-08-13T05:14:24.313795", "total_duration_seconds": 379.8, "exercises_completed": 5, "avg_score": 97.7, "exercises": [{"exercise_name": "Inclinaison tronc gauche (assis)", "total_reps": 8, "target_reps": 8, "avg_amplitude": 21.5, "max_amplitude": 33.1, "compensations_count": 0, "duration_seconds": 50.1, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion epaule gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 127.9, "max_amplitude": 143.5, "compensations_count": 0, "duration_seconds": 80.6, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion coude droit", "total_reps": 10, "target_reps": 10, "avg_amplitude": 125.7, "max_amplitude": 131.6, "compensations_count": 0, "duration_seconds": 32.2, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion bilaterale epaules", "total_reps": 10, "target_reps": 10, "avg_amplitude": 127.4, "max_amplitude": 136.9, "compensations_count": 2, "duration_seconds": 82.0, "score": 94.0, "rep_details": [], "compensation_summary": {"total": 2, "types": {"SHOULDER_ELEVATION": {"count": 2, "max_severity": "moderate"}}}}, {"exercise_name": "Extension genou gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 57.0, "max_amplitude": 64.7, "compensations_count": 0, "duration_seconds": 67.3, "score": 94.4, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}]}, {"session_id": "20260820_041424", "patient_id": "patient002", "date": "2026-08-20T04:14:24.313795", "total_duration_seconds": 279.5, "exercises_completed": 4, "avg_score": 100.0, "exercises": [{"exercise_name": "Flexion epaule gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 146.0, "max_amplitude": 156.5, "compensations_count": 0, "duration_seconds": 59.9, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion epaule droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 131.3, "max_amplitude": 142.6, "compensations_count": 0, "duration_seconds": 32.5, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Transfert de poids lateral (debout)", "total_reps": 8, "target_reps": 8, "avg_amplitude": 17.5, "max_amplitude": 26.1, "compensations_count": 0, "duration_seconds": 61.0, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion bilaterale epaules", "total_reps": 10, "target_reps": 10, "avg_amplitude": 89.7, "max_amplitude": 100.2, "compensations_count": 0, "duration_seconds": 62.6, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}]}, {"session_id": "20260828_031424", "patient_id": "patient002", "date": "2026-08-28T03:14:24.313795", "total_duration_seconds": 474.4, "exercises_completed": 6, "avg_score": 100.0, "exercises": [{"exercise_name": "Transfert de poids lateral (debout)", "total_reps": 8, "target_reps": 8, "avg_amplitude": 19.4, "max_amplitude": 38.8, "compensations_count": 0, "duration_seconds": 83.0, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion hanche droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 79.1, "max_amplitude": 85.9, "compensations_count": 0, "duration_seconds": 63.4, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Inclinaison tronc gauche (assis)", "total_reps": 8, "target_reps": 8, "avg_amplitude": 24.1, "max_amplitude": 31.9, "compensations_count": 0, "duration_seconds": 74.7, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion epaule gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 143.8, "max_amplitude": 161.6, "compensations_count": 0, "duration_seconds": 35.0, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion epaule droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 131.3, "max_amplitude": 150.7, "compensations_count": 0, "duration_seconds": 34.3, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion coude droit", "total_reps": 10, "target_reps": 10, "avg_amplitude": 119.2, "max_amplitude": 130.5, "compensations_count": 0, "duration_seconds": 79.9, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}]}, {"session_id": "20260903_221424", "patient_id": "patient002", "date": "2026-09-03T22:14:24.313795", "total_duration_seconds": 416.8, "exercises_completed": 5, "avg_score": 100.0, "exercises": [{"exercise_name": "Flexion epaule droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 102.2, "max_amplitude": 120.3, "compensations_count": 0, "duration_seconds": 35.3, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Extension genou gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 104.5, "max_amplitude": 117.9, "compensations_count": 0, "duration_seconds": 46.1, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion epaule gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 111.7, "max_amplitude": 124.0, "compensations_count": 0, "duration_seconds": 88.3, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion hanche droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 88.4, "max_amplitude": 103.5, "compensations_count": 0, "duration_seconds": 86.0, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion bilaterale epaules", "total_reps": 10, "target_reps": 10, "avg_amplitude": 132.7, "max_amplitude": 142.6, "compensations_count": 0, "duration_seconds": 52.3, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}]}, {"session_id": "20260913_051424", "patient_id": "patient002", "date": "2026-09-13T05:14:24.313795", "total_duration_seconds": 403.2, "exercises_completed": 7, "avg_score": 100.0, "exercises": [{"exercise_name": "Flexion coude droit", "total_reps": 10, "target_reps": 10, "avg_amplitude": 115.0, "max_amplitude": 120.4, "compensations_count": 0, "duration_seconds": 39.7, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion epaule droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 150.8, "max_amplitude": 157.3, "compensations_count": 0, "duration_seconds": 30.3, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion epaule gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 98.3, "max_amplitude": 116.1, "compensations_count": 0, "duration_seconds": 38.9, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Inclinaison tronc gauche (assis)", "total_reps": 8, "target_reps": 8, "avg_amplitude": 25.1, "max_amplitude": 32.0, "compensations_count": 0, "duration_seconds": 76.5, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Transfert de poids lateral (debout)", "total_reps": 8, "target_reps": 8, "avg_amplitude": 21.5, "max_amplitude": 40.5, "compensations_count": 0, "duration_seconds": 49.9, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion hanche droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 83.1, "max_amplitude": 101.5, "compensations_count": 0, "duration_seconds": 51.7, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Extension genou gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 91.6, "max_amplitude": 108.3, "compensations_count": 0, "duration_seconds": 42.2, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}]}, {"session_id": "20260821_011424", "patient_id": "patient003", "date": "2026-08-21T01:14:24.321967", "total_duration_seconds": 370.2, "exercises_completed": 5, "avg_score": 82.8, "exercises": [{"exercise_name": "Extension genou gauche", "total_reps": 8, "target_reps": 10, "avg_amplitude": 91.1, "max_amplitude": 97.6, "compensations_count": 3, "duration_seconds": 43.4, "score": 83.0, "rep_details": [], "compensation_summary": {"total": 3, "types": {"HIP_SHIFT": {"count": 3, "max_severity": "mild"}}}}, {"exercise_name": "Flexion epaule gauche", "total_reps": 7, "target_reps": 10, "avg_amplitude": 128.9, "max_amplitude": 143.6, "compensations_count": 5, "duration_seconds": 69.1, "score": 73.0, "rep_details": [], "compensation_summary": {"total": 5, "types": {"HIP_SHIFT": {"count": 5, "max_severity": "moderate"}}}}, {"exercise_name": "Transfert de poids lateral (debout)", "total_reps": 7, "target_reps": 8, "avg_amplitude": 8.6, "max_amplitude": 22.5, "compensations_count": 2, "duration_seconds": 68.6, "score": 84.8, "rep_details": [], "compensation_summary": {"total": 2, "types": {"SHOULDER_ELEVATION": {"count": 2, "max_severity": "moderate"}}}}, {"exercise_name": "Flexion epaule droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 105.0, "max_amplitude": 117.1, "compensations_count": 3, "duration_seconds": 38.1, "score": 91.0, "rep_details": [], "compensation_summary": {"total": 3, "types": {"HIP_SHIFT": {"count": 3, "max_severity": "mild"}}}}, {"exercise_name": "Abduction epaule gauche", "total_reps": 7, "target_reps": 10, "avg_amplitude": 111.4, "max_amplitude": 125.4, "compensations_count": 2, "duration_seconds": 56.6, "score": 82.0, "rep_details": [], "compensation_summary": {"total": 2, "types": {"HIP_SHIFT": {"count": 2, "max_severity": "moderate"}}}}]}, {"session_id": "20260827_001424", "patient_id": "patient003", "date": "2026-08-27T00:14:24.321967", "total_duration_seconds": 288.4, "exercises_completed": 4, "avg_score": 87.2, "exercises": [{"exercise_name": "Flexion hanche droite", "total_reps": 9, "target_reps": 10, "avg_amplitude": 46.0, "max_amplitude": 51.3, "compensations_count": 1, "duration_seconds": 69.5, "score": 86.0, "rep_details": [], "compensation_summary": {"total": 1, "types": {"HIP_SHIFT": {"count": 1, "max_severity": "mild"}}}}, {"exercise_name": "Extension genou gauche", "total_reps": 9, "target_reps": 10, "avg_amplitude": 102.4, "max_amplitude": 108.7, "compensations_count": 0, "duration_seconds": 34.5, "score": 96.0, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion coude droit", "total_reps": 8, "target_reps": 10, "avg_amplitude": 98.2, "max_amplitude": 115.8, "compensations_count": 1, "duration_seconds": 33.4, "score": 89.0, "rep_details": [], "compensation_summary": {"total": 1, "types": {"SHOULDER_ELEVATION": {"count": 1, "max_severity": "moderate"}}}}, {"exercise_name": "Inclinaison tronc gauche (assis)", "total_reps": 6, "target_reps": 8, "avg_amplitude": 18.2, "max_amplitude": 35.8, "compensations_count": 4, "duration_seconds": 35.9, "score": 78.0, "rep_details": [], "compensation_summary": {"total": 4, "types": {"SHOULDER_ELEVATION": {"count": 4, "max_severity": "moderate"}}}}]}, {"session_id": "20260905_031424", "patient_id": "patient003", "date": "2026-09-05T03:14:24.321967", "total_duration_seconds": 551.0, "exercises_completed": 7, "avg_score": 96.0, "exercises": [{"exercise_name": "Flexion hanche droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 95.7, "max_amplitude": 109.2, "compensations_count": 0, "duration_seconds": 65.3, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Transfert de poids lateral (debout)", "total_reps": 8, "target_reps": 8, "avg_amplitude": 13.7, "max_amplitude": 22.4, "compensations_count": 2, "duration_seconds": 44.3, "score": 94.0, "rep_details": [], "compensation_summary": {"total": 2, "types": {"SHOULDER_ELEVATION": {"count": 2, "max_severity": "mild"}}}}, {"exercise_name": "Flexion epaule gauche", "total_reps": 9, "target_reps": 10, "avg_amplitude": 141.4, "max_amplitude": 154.8, "compensations_count": 2, "duration_seconds": 48.6, "score": 90.0, "rep_details": [], "compensation_summary": {"total": 2, "types": {"SHOULDER_ELEVATION": {"count": 2, "max_severity": "mild"}}}}, {"exercise_name": "Abduction epaule gauche", "total_reps": 9, "target_reps": 10, "avg_amplitude": 82.2, "max_amplitude": 90.7, "compensations_count": 0, "duration_seconds": 81.4, "score": 96.0, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Extension genou gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 117.3, "max_amplitude": 134.5, "compensations_count": 0, "duration_seconds": 78.7, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion coude droit", "total_reps": 9, "target_reps": 10, "avg_amplitude": 127.8, "max_amplitude": 142.7, "compensations_count": 0, "duration_seconds": 71.0, "score": 96.0, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion bilaterale epaules", "total_reps": 9, "target_reps": 10, "avg_amplitude": 124.4, "max_amplitude": 143.9, "compensations_count": 0, "duration_seconds": 35.0, "score": 96.0, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}]}, {"session_id": "20260912_011424", "patient_id": "patient003", "date": "2026-09-12T01:14:24.321967", "total_duration_seconds": 452.9, "exercises_completed": 5, "avg_score": 99.4, "exercises": [{"exercise_name": "Flexion epaule gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 99.6, "max_amplitude": 116.6, "compensations_count": 0, "duration_seconds": 39.7, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion coude droit", "total_reps": 10, "target_reps": 10, "avg_amplitude": 120.2, "max_amplitude": 136.0, "compensations_count": 1, "duration_seconds": 64.7, "score": 97.0, "rep_details": [], "compensation_summary": {"total": 1, "types": {"HIP_SHIFT": {"count": 1, "max_severity": "moderate"}}}}, {"exercise_name": "Abduction epaule gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 78.7, "max_amplitude": 95.9, "compensations_count": 0, "duration_seconds": 67.9, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion bilaterale epaules", "total_reps": 10, "target_reps": 10, "avg_amplitude": 92.8, "max_amplitude": 100.4, "compensations_count": 0, "duration_seconds": 38.9, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion epaule droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 146.0, "max_amplitude": 155.7, "compensations_count": 0, "duration_seconds": 81.6, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}]}, {"session_id": "20260918_011424", "patient_id": "patient003", "date": "2026-09-18T01:14:24.321967", "total_duration_seconds": 376.2, "exercises_completed": 4, "avg_score": 99.2, "exercises": [{"exercise_name": "Flexion bilaterale epaules", "total_reps": 10, "target_reps": 10, "avg_amplitude": 118.3, "max_amplitude": 126.0, "compensations_count": 0, "duration_seconds": 45.0, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion hanche droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 81.7, "max_amplitude": 93.5, "compensations_count": 0, "duration_seconds": 87.2, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Abduction epaule gauche", "total_reps": 10, "target_reps": 10, "avg_amplitude": 108.7, "max_amplitude": 120.7, "compensations_count": 0, "duration_seconds": 33.0, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Inclinaison tronc gauche (assis)", "total_reps": 8, "target_reps": 8, "avg_amplitude": 20.6, "max_amplitude": 30.4, "compensations_count": 1, "duration_seconds": 44.4, "score": 97.0, "rep_details": [], "compensation_summary": {"total": 1, "types": {"TRUNK_LEAN": {"count": 1, "max_severity": "mild"}}}}]}, {"session_id": "20260924_051424", "patient_id": "patient003", "date": "2026-09-24T05:14:24.321967", "total_duration_seconds": 383.4, "exercises_completed": 5, "avg_score": 100.0, "exercises": [{"exercise_name": "Transfert de poids lateral (debout)", "total_reps": 8, "target_reps": 8, "avg_amplitude": 17.6, "max_amplitude": 31.4, "compensations_count": 0, "duration_seconds": 66.5, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion epaule droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 139.6, "max_amplitude": 151.0, "compensations_count": 0, "duration_seconds": 66.8, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Inclinaison tronc gauche (assis)", "total_reps": 8, "target_reps": 8, "avg_amplitude": 21.9, "max_amplitude": 32.1, "compensations_count": 0, "duration_seconds": 30.4, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion bilaterale epaules", "total_reps": 10, "target_reps": 10, "avg_amplitude": 133.7, "max_amplitude": 147.1, "compensations_count": 0, "duration_seconds": 45.3, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}, {"exercise_name": "Flexion hanche droite", "total_reps": 10, "target_reps": 10, "avg_amplitude": 64.1, "max_amplitude": 77.5, "compensations_count": 0, "duration_seconds": 33.0, "score": 100, "rep_details": [], "compensation_summary": {"total": 0, "types": {}}}]}];
+
+// ─── Stats globales ───
+const totalSessions = sessions.length;
+const patients = [...new Set(sessions.map(s => s.patient_id))];
+const totalExercises = sessions.reduce((sum, s) => sum + s.exercises_completed, 0);
+const avgScore = (sessions.reduce((sum, s) => sum + s.avg_score, 0) / totalSessions).toFixed(1);
+
+document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card"><div class="stat-value">${patients.length}</div><div class="stat-label">Patients suivis</div></div>
+    <div class="stat-card"><div class="stat-value">${totalSessions}</div><div class="stat-label">Sessions réalisées</div></div>
+    <div class="stat-card"><div class="stat-value">${totalExercises}</div><div class="stat-label">Exercices complétés</div></div>
+    <div class="stat-card"><div class="stat-value">${avgScore}</div><div class="stat-label">Score moyen global</div></div>
+`;
+
+// ─── Onglets patients ───
+const tabsEl = document.getElementById('patient-tabs');
+const allTab = document.createElement('div');
+allTab.className = 'tab active';
+allTab.textContent = 'Tous les patients';
+allTab.onclick = () => { filterPatient(null); setActiveTab(allTab); };
+tabsEl.appendChild(allTab);
+
+patients.forEach(p => {
+    const tab = document.createElement('div');
+    tab.className = 'tab';
+    tab.textContent = p;
+    tab.onclick = () => { filterPatient(p); setActiveTab(tab); };
+    tabsEl.appendChild(tab);
+});
+
+function setActiveTab(active) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    active.classList.add('active');
+}
+
+// ─── Couleurs ───
+const colors = ['#38bdf8', '#f472b6', '#a78bfa', '#34d399', '#fbbf24'];
+
+// ─── Chart 1 : Score par session ───
+const scoreCtx = document.getElementById('scoreChart').getContext('2d');
+const scoreChart = new Chart(scoreCtx, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: patients.map((p, i) => ({
+            label: p,
+            data: [],
+            borderColor: colors[i],
+            backgroundColor: colors[i] + '33',
+            tension: 0.3,
+            fill: true,
+            pointRadius: 5,
+        }))
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: '#94a3b8' } } },
+        scales: {
+            y: { min: 50, max: 105, ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
+            x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
+        }
+    }
+});
+
+// ─── Chart 2 : Compensations ───
+const compCtx = document.getElementById('compChart').getContext('2d');
+const compChart = new Chart(compCtx, {
+    type: 'bar',
+    data: { labels: [], datasets: [] },
+    options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: '#94a3b8' } } },
+        scales: {
+            y: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
+            x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
+        }
+    }
+});
+
+// ─── Chart 3 : Score par exercice ───
+const exCtx = document.getElementById('exerciseChart').getContext('2d');
+const exChart = new Chart(exCtx, {
+    type: 'bar',
+    data: { labels: [], datasets: [] },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { min: 60, max: 105, ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
+            y: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { color: '#1e293b' } }
+        }
+    }
+});
+
+// ─── Chart 4 : Durée ───
+const durCtx = document.getElementById('durationChart').getContext('2d');
+const durChart = new Chart(durCtx, {
+    type: 'line',
+    data: { labels: [], datasets: [] },
+    options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: '#94a3b8' } } },
+        scales: {
+            y: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
+            x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
+        }
+    }
+});
+
+// ─── Mise à jour ───
+function filterPatient(patientId) {
+    const filtered = patientId ? sessions.filter(s => s.patient_id === patientId) : sessions;
+    const activePatients = patientId ? [patientId] : patients;
+    
+    // Score chart
+    const allDates = [...new Set(filtered.map(s => new Date(s.date).toLocaleDateString('fr-FR')))];
+    scoreChart.data.labels = allDates;
+    scoreChart.data.datasets = activePatients.map((p, i) => {
+        const pSessions = filtered.filter(s => s.patient_id === p).sort((a,b) => new Date(a.date) - new Date(b.date));
+        return {
+            label: p,
+            data: pSessions.map(s => s.avg_score),
+            borderColor: colors[i],
+            backgroundColor: colors[i] + '33',
+            tension: 0.3, fill: true, pointRadius: 5,
+        };
+    });
+    scoreChart.update();
+    
+    // Compensations chart
+    compChart.data.datasets = activePatients.map((p, i) => {
+        const pSessions = filtered.filter(s => s.patient_id === p).sort((a,b) => new Date(a.date) - new Date(b.date));
+        return {
+            label: p,
+            data: pSessions.map(s => s.exercises.reduce((sum, e) => sum + e.compensations_count, 0)),
+            backgroundColor: colors[i] + 'aa',
+            borderColor: colors[i],
+            borderWidth: 1,
+        };
+    });
+    compChart.data.labels = filtered.sort((a,b) => new Date(a.date) - new Date(b.date))
+        .map(s => new Date(s.date).toLocaleDateString('fr-FR'));
+    compChart.update();
+    
+    // Exercise chart
+    const exScores = {};
+    filtered.forEach(s => s.exercises.forEach(e => {
+        if (!exScores[e.exercise_name]) exScores[e.exercise_name] = [];
+        exScores[e.exercise_name].push(e.score);
+    }));
+    const exNames = Object.keys(exScores).sort();
+    exChart.data.labels = exNames.map(n => n.length > 30 ? n.substring(0, 28) + '…' : n);
+    exChart.data.datasets = [{
+        data: exNames.map(n => (exScores[n].reduce((a,b) => a+b, 0) / exScores[n].length).toFixed(1)),
+        backgroundColor: exNames.map((_, i) => colors[i % colors.length] + 'cc'),
+        borderColor: exNames.map((_, i) => colors[i % colors.length]),
+        borderWidth: 1,
+    }];
+    exChart.update();
+    
+    // Duration chart
+    durChart.data.datasets = activePatients.map((p, i) => {
+        const pSessions = filtered.filter(s => s.patient_id === p).sort((a,b) => new Date(a.date) - new Date(b.date));
+        return {
+            label: p,
+            data: pSessions.map(s => (s.total_duration_seconds / 60).toFixed(1)),
+            borderColor: colors[i],
+            tension: 0.3, pointRadius: 4,
+        };
+    });
+    durChart.data.labels = filtered.sort((a,b) => new Date(a.date) - new Date(b.date))
+        .map(s => new Date(s.date).toLocaleDateString('fr-FR'));
+    durChart.update();
+    
+    // Table
+    const tbody = document.getElementById('sessions-tbody');
+    tbody.innerHTML = '';
+    filtered.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(s => {
+        const totalComp = s.exercises.reduce((sum, e) => sum + e.compensations_count, 0);
+        const badge = s.avg_score >= 95 ? 'badge-green' : s.avg_score >= 80 ? 'badge-yellow' : 'badge-red';
+        const status = s.avg_score >= 95 ? 'Excellent' : s.avg_score >= 80 ? 'Bon' : 'À améliorer';
+        const dur = (s.total_duration_seconds / 60).toFixed(0);
+        tbody.innerHTML += `<tr>
+            <td><strong>${s.patient_id}</strong></td>
+            <td>${new Date(s.date).toLocaleDateString('fr-FR')}</td>
+            <td>${s.exercises_completed}</td>
+            <td><strong>${s.avg_score.toFixed(1)}</strong>/100</td>
+            <td>${dur} min</td>
+            <td>${totalComp}</td>
+            <td><span class="badge ${badge}">${status}</span></td>
+        </tr>`;
+    });
+}
+
+// Initial render
+filterPatient(null);
+</script>
+
+</body>
+</html>

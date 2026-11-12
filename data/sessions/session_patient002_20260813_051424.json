@@ -1,0 +1,90 @@
+{
+  "session_id": "20260813_051424",
+  "patient_id": "patient002",
+  "date": "2026-08-13T05:14:24.313795",
+  "total_duration_seconds": 379.8,
+  "exercises_completed": 5,
+  "avg_score": 97.7,
+  "exercises": [
+    {
+      "exercise_name": "Inclinaison tronc gauche (assis)",
+      "total_reps": 8,
+      "target_reps": 8,
+      "avg_amplitude": 21.5,
+      "max_amplitude": 33.1,
+      "compensations_count": 0,
+      "duration_seconds": 50.1,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion epaule gauche",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 127.9,
+      "max_amplitude": 143.5,
+      "compensations_count": 0,
+      "duration_seconds": 80.6,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion coude droit",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 125.7,
+      "max_amplitude": 131.6,
+      "compensations_count": 0,
+      "duration_seconds": 32.2,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion bilaterale epaules",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 127.4,
+      "max_amplitude": 136.9,
+      "compensations_count": 2,
+      "duration_seconds": 82.0,
+      "score": 94.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 2,
+        "types": {
+          "SHOULDER_ELEVATION": {
+            "count": 2,
+            "max_severity": "moderate"
+          }
+        }
+      }
+    },
+    {
+      "exercise_name": "Extension genou gauche",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 57.0,
+      "max_amplitude": 64.7,
+      "compensations_count": 0,
+      "duration_seconds": 67.3,
+      "score": 94.4,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    }
+  ]
+}

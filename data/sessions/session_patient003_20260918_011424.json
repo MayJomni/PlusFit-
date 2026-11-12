@@ -1,0 +1,75 @@
+{
+  "session_id": "20260918_011424",
+  "patient_id": "patient003",
+  "date": "2026-09-18T01:14:24.321967",
+  "total_duration_seconds": 376.2,
+  "exercises_completed": 4,
+  "avg_score": 99.2,
+  "exercises": [
+    {
+      "exercise_name": "Flexion bilaterale epaules",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 118.3,
+      "max_amplitude": 126.0,
+      "compensations_count": 0,
+      "duration_seconds": 45.0,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion hanche droite",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 81.7,
+      "max_amplitude": 93.5,
+      "compensations_count": 0,
+      "duration_seconds": 87.2,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Abduction epaule gauche",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 108.7,
+      "max_amplitude": 120.7,
+      "compensations_count": 0,
+      "duration_seconds": 33.0,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Inclinaison tronc gauche (assis)",
+      "total_reps": 8,
+      "target_reps": 8,
+      "avg_amplitude": 20.6,
+      "max_amplitude": 30.4,
+      "compensations_count": 1,
+      "duration_seconds": 44.4,
+      "score": 97.0,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 1,
+        "types": {
+          "TRUNK_LEAN": {
+            "count": 1,
+            "max_severity": "mild"
+          }
+        }
+      }
+    }
+  ]
+}

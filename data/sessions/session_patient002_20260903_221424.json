@@ -1,0 +1,85 @@
+{
+  "session_id": "20260903_221424",
+  "patient_id": "patient002",
+  "date": "2026-09-03T22:14:24.313795",
+  "total_duration_seconds": 416.8,
+  "exercises_completed": 5,
+  "avg_score": 100.0,
+  "exercises": [
+    {
+      "exercise_name": "Flexion epaule droite",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 102.2,
+      "max_amplitude": 120.3,
+      "compensations_count": 0,
+      "duration_seconds": 35.3,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Extension genou gauche",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 104.5,
+      "max_amplitude": 117.9,
+      "compensations_count": 0,
+      "duration_seconds": 46.1,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion epaule gauche",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 111.7,
+      "max_amplitude": 124.0,
+      "compensations_count": 0,
+      "duration_seconds": 88.3,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion hanche droite",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 88.4,
+      "max_amplitude": 103.5,
+      "compensations_count": 0,
+      "duration_seconds": 86.0,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion bilaterale epaules",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 132.7,
+      "max_amplitude": 142.6,
+      "compensations_count": 0,
+      "duration_seconds": 52.3,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    }
+  ]
+}

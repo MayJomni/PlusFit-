@@ -1,0 +1,85 @@
+{
+  "session_id": "20260924_051424",
+  "patient_id": "patient003",
+  "date": "2026-09-24T05:14:24.321967",
+  "total_duration_seconds": 383.4,
+  "exercises_completed": 5,
+  "avg_score": 100.0,
+  "exercises": [
+    {
+      "exercise_name": "Transfert de poids lateral (debout)",
+      "total_reps": 8,
+      "target_reps": 8,
+      "avg_amplitude": 17.6,
+      "max_amplitude": 31.4,
+      "compensations_count": 0,
+      "duration_seconds": 66.5,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion epaule droite",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 139.6,
+      "max_amplitude": 151.0,
+      "compensations_count": 0,
+      "duration_seconds": 66.8,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Inclinaison tronc gauche (assis)",
+      "total_reps": 8,
+      "target_reps": 8,
+      "avg_amplitude": 21.9,
+      "max_amplitude": 32.1,
+      "compensations_count": 0,
+      "duration_seconds": 30.4,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion bilaterale epaules",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 133.7,
+      "max_amplitude": 147.1,
+      "compensations_count": 0,
+      "duration_seconds": 45.3,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion hanche droite",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 64.1,
+      "max_amplitude": 77.5,
+      "compensations_count": 0,
+      "duration_seconds": 33.0,
+      "score": 100,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    }
+  ]
+}

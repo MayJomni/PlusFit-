@@ -128,6 +128,12 @@ class RehabMirrorGUI:
         self._calibration_duration = 3
         self._last_keypoints = None
 
+        # ── Thread d'inférence TFLite (non-bloquant) ─────────────────────
+        self._inference_lock = threading.Lock()
+        self._inference_frame = None      # Frame à analyser
+        self._inference_keypoints = None  # Résultat de l'inférence
+        self._inference_running = False   # Thread actif
+
         # ── Guidage vocal du mouvement ────────────────────────────────────
         self._prev_angle = None       # Angle frame précédente
         self._angle_history = []      # Historique angles (lissage sur 5 frames)
@@ -498,7 +504,7 @@ class RehabMirrorGUI:
             self._video_loop()
 
     def _load_detector(self):
-        """Charge MoveNet dans un thread séparé."""
+        """Charge MoveNet dans un thread séparé, puis démarre le thread d'inférence."""
         try:
             from pose_detection.movenet import MoveNetDetector
             self.detector = MoveNetDetector(
@@ -507,16 +513,38 @@ class RehabMirrorGUI:
             )
             self._detector_loaded = True
             self._camera_running = True
+            # Démarrer le thread d'inférence TFLite
+            self._inference_running = True
+            threading.Thread(target=self._inference_worker, daemon=True).start()
             self.root.after(0, self._video_loop)
         except Exception as e:
             err_msg = str(e)
             print(f"[Erreur] Chargement MoveNet : {err_msg}")
             self.root.after(0, lambda msg=err_msg: self._video_label.configure(
-                text=f"Erreur : {msg}\n\nVerifiez l'installation de TensorFlow."
+                text=f"Modèle IA introuvable.\n\nErreur : {msg}"
             ))
 
+    def _inference_worker(self):
+        """Thread dédié à l'inférence TFLite (ne bloque jamais le thread Tkinter)."""
+        import time as _time
+        while self._inference_running and self._camera_running:
+            with self._inference_lock:
+                frame_to_process = self._inference_frame
+                self._inference_frame = None  # Consommer la frame
+
+            if frame_to_process is not None and self.detector is not None:
+                try:
+                    kp = self.detector.detect(frame_to_process)
+                    with self._inference_lock:
+                        self._inference_keypoints = kp
+                        self._last_keypoints = kp
+                except Exception as e:
+                    print(f"[Inférence] Erreur: {e}")
+            else:
+                _time.sleep(0.01)  # Attendre la prochaine frame
+
     def _video_loop(self):
-        """Boucle de capture et affichage vidéo."""
+        """Boucle d'affichage vidéo — légère, tourne à 30fps dans Tkinter."""
         if not self._camera_running or self.cap is None:
             return
 
@@ -525,37 +553,58 @@ class RehabMirrorGUI:
             self.root.after(33, self._video_loop)
             return
 
-        # Détection de pose
-        keypoints = None
-        if self.detector:
-            keypoints = self.detector.detect(frame)
-            self._last_keypoints = keypoints
+        # Envoyer la frame au thread d'inférence (non-bloquant)
+        with self._inference_lock:
+            self._inference_frame = frame.copy()
+            # Lire les keypoints du dernier résultat disponible
+            keypoints = self._inference_keypoints
 
-        # Traitement selon l'état
+        # Si pas de thread d'inférence (démarre encore), inférence directe légère
+        if keypoints is None and self.detector and not self._inference_running:
+            try:
+                keypoints = self.detector.detect(frame)
+                self._last_keypoints = keypoints
+            except Exception:
+                pass
+
+        # ── Calibration ────────────────────────────────────────────────────
         if self._calibrating:
             elapsed = time.time() - self._calibration_start
-            remaining = self._calibration_duration - int(elapsed)
-            countdown = max(1, remaining)
+            seconds_left = int(self._calibration_duration - elapsed)
+            countdown = max(1, seconds_left)
             display = draw_calibration_screen(
                 frame, keypoints, countdown=countdown,
                 min_confidence=config.MIN_CONFIDENCE,
             )
             if elapsed >= self._calibration_duration:
+                # ✅ Transition calibration → exercice
                 self._calibrating = False
                 self.exercise_active = True
-                if keypoints is not None:
-                    self.current_exercise.start(keypoints)
-                    # 🔊 Signal de départ — dans un thread pour ne pas bloquer l'UI
-                    ex_name = self.current_exercise.name
-                    threading.Thread(
-                        target=self.audio.speak_start,
-                        args=(ex_name,),
-                        daemon=True,
-                    ).start()
-                self._start_btn.configure(state="disabled")
+                try:
+                    if keypoints is not None:
+                        self.current_exercise.start(keypoints)
+                    else:
+                        self.current_exercise.start(None)
+                except Exception as ex:
+                    print(f"[Exercice] Erreur start(): {ex}")
+                ex_name = getattr(self.current_exercise, "name", "exercice")
+                threading.Thread(
+                    target=self.audio.speak_start,
+                    args=(ex_name,), daemon=True,
+                ).start()
+                try:
+                    self._start_btn.configure(state="disabled")
+                except Exception:
+                    pass
 
+        # ── Exercice actif ─────────────────────────────────────────────────
         elif self.exercise_active:
-            exercise_state = self.current_exercise.update(keypoints)
+            try:
+                exercise_state = self.current_exercise.update(keypoints)
+            except Exception as ex:
+                print(f"[Exercice] Erreur update(): {ex}")
+                exercise_state = {}
+
             display = draw_mirror_frame(
                 frame, keypoints,
                 exercise_state=exercise_state,
@@ -563,112 +612,109 @@ class RehabMirrorGUI:
                 min_confidence=config.MIN_CONFIDENCE,
             )
             self._update_panel(exercise_state)
-
-            # 🔊 Guidage vocal du mouvement (phase par phase) — thread pour ne pas bloquer
-            angle = exercise_state.get("angle")
-            if angle is not None:
-                # Lissage sur 5 frames pour éviter les faux positifs
-                self._angle_history.append(angle)
-                if len(self._angle_history) > 5:
-                    self._angle_history.pop(0)
-                smooth_angle = sum(self._angle_history) / len(self._angle_history)
-
-                angle_start  = self.current_exercise.angle_start
-                angle_target = self.current_exercise.angle_target
-                angle_range  = angle_target - angle_start
-                pct = (smooth_angle - angle_start) / angle_range if angle_range else 0
-
-                # Déterminer la phase du mouvement
-                if self._prev_angle is not None:
-                    delta = smooth_angle - self._prev_angle
-                    if pct >= 0.85:
-                        new_phase = "tenue"
-                    elif delta > 0.5:
-                        new_phase = "montee"
-                    elif delta < -0.5:
-                        new_phase = "descente"
-                    else:
-                        new_phase = self._voice_phase  # Pas de changement
-
-                    if new_phase and new_phase != self._voice_phase:
-                        self._voice_phase = new_phase
-                        ex_n = self.current_exercise.name
-                        threading.Thread(
-                            target=self.audio.speak_mouvement,
-                            args=(ex_n, new_phase),
-                            daemon=True,
-                        ).start()
-                self._prev_angle = smooth_angle
-
-            # 🔊 Comptage des répétitions — thread
-            if exercise_state.get("new_rep"):
-                self._prev_angle = None
-                self._angle_history = []
-                self._voice_phase = None
-                r, t = exercise_state["reps"], exercise_state["target_reps"]
-                threading.Thread(
-                    target=self.audio.speak_rep,
-                    args=(r, t),
-                    daemon=True,
-                ).start()
-
-            # 🔊 Alertes de compensation (anti-spam : 1 alerte / 90 frames) — thread
-            self._comp_cooldown = max(0, self._comp_cooldown - 1)
-            if exercise_state.get("compensations") and self._comp_cooldown == 0:
-                worst = max(
-                    exercise_state["compensations"],
-                    key=lambda a: {"mild": 0, "moderate": 1, "severe": 2}[a.severity],
-                )
-                if worst.severity in ("moderate", "severe"):
-                    wm = worst.message
-                    threading.Thread(
-                        target=self.audio.speak_compensation,
-                        args=(wm,),
-                        daemon=True,
-                    ).start()
-                    self._comp_cooldown = 90  # ~3 secondes à 30fps
-
-            # 😴 Détection de fatigue — thread
-            fatigue_info = exercise_state.get("fatigue_info")
-            if fatigue_info and not getattr(self, "_fatigue_alerted", False):
-                self._fatigue_alerted = True
-                msg = fatigue_info["message"] + ". " + fatigue_info["suggestion"]
-                threading.Thread(
-                    target=self.audio.speak,
-                    kwargs={"text": msg, "priority": True},
-                    daemon=True,
-                ).start()
-                self._show_fatigue_alert(fatigue_info)
+            self._handle_audio_feedback(exercise_state)
 
             if exercise_state.get("completed"):
                 self._on_exercise_complete()
+
+        # ── Idle : juste l'image miroir ────────────────────────────────────
         else:
             display = draw_mirror_frame(
                 frame, keypoints,
                 min_confidence=config.MIN_CONFIDENCE,
             )
 
-        # 🎨 Silhouette guide animée (toujours affichée quand exercice sélectionné)
+        # 🎨 Silhouette guide animée
         if self._silhouette is not None:
-            display = self._silhouette.draw(display, x=15, y=15)
+            try:
+                display = self._silhouette.draw(display, x=15, y=15)
+            except Exception:
+                pass
 
-        # Convertir pour affichage Tkinter
-        display_rgb = cv2.cvtColor(display, cv2.COLOR_BGR2RGB)
-        img = Image.fromarray(display_rgb)
-
+        # Convertir BGR → RGB et afficher dans le label Tkinter
         try:
+            display_rgb = cv2.cvtColor(display, cv2.COLOR_BGR2RGB)
+            img = Image.fromarray(display_rgb)
             label_w = self._video_label.winfo_width()
             label_h = self._video_label.winfo_height()
             if label_w > 10 and label_h > 10:
                 img = img.resize((label_w, label_h), Image.LANCZOS)
-        except Exception:
-            pass
-
-        ctk_img = ctk.CTkImage(light_image=img, dark_image=img, size=img.size)
-        self._video_label.configure(image=ctk_img, text="")
-        self._video_label._ctk_image = ctk_img
+            ctk_img = ctk.CTkImage(light_image=img, dark_image=img, size=img.size)
+            self._video_label.configure(image=ctk_img, text="")
+            self._video_label._ctk_image = ctk_img
+        except Exception as ex:
+            print(f"[Affichage] Erreur: {ex}")
 
         self.root.after(33, self._video_loop)
+
+    def _handle_audio_feedback(self, exercise_state: dict):
+        """Gère tous les retours audio de l'exercice (non-bloquant, threads)."""
+        # 🔊 Guidage vocal du mouvement (phase par phase)
+        angle = exercise_state.get("angle")
+        if angle is not None:
+            self._angle_history.append(angle)
+            if len(self._angle_history) > 5:
+                self._angle_history.pop(0)
+            smooth_angle = sum(self._angle_history) / len(self._angle_history)
+            angle_start  = getattr(self.current_exercise, "angle_start", 0)
+            angle_target = getattr(self.current_exercise, "angle_target", 180)
+            angle_range  = angle_target - angle_start
+            pct = (smooth_angle - angle_start) / angle_range if angle_range else 0
+            if self._prev_angle is not None:
+                delta = smooth_angle - self._prev_angle
+                if pct >= 0.85:
+                    new_phase = "tenue"
+                elif delta > 0.5:
+                    new_phase = "montee"
+                elif delta < -0.5:
+                    new_phase = "descente"
+                else:
+                    new_phase = self._voice_phase
+                if new_phase and new_phase != self._voice_phase:
+                    self._voice_phase = new_phase
+                    ex_n = getattr(self.current_exercise, "name", "")
+                    threading.Thread(
+                        target=self.audio.speak_mouvement,
+                        args=(ex_n, new_phase), daemon=True,
+                    ).start()
+            self._prev_angle = smooth_angle
+
+        # 🔊 Comptage des répétitions
+        if exercise_state.get("new_rep"):
+            self._prev_angle = None
+            self._angle_history = []
+            self._voice_phase = None
+            r, t = exercise_state.get("reps", 0), exercise_state.get("target_reps", 10)
+            threading.Thread(target=self.audio.speak_rep, args=(r, t), daemon=True).start()
+
+        # 🔊 Alertes de compensation (anti-spam 90 frames)
+        self._comp_cooldown = max(0, self._comp_cooldown - 1)
+        if exercise_state.get("compensations") and self._comp_cooldown == 0:
+            try:
+                worst = max(
+                    exercise_state["compensations"],
+                    key=lambda a: {"mild": 0, "moderate": 1, "severe": 2}.get(a.severity, 0),
+                )
+                if worst.severity in ("moderate", "severe"):
+                    wm = worst.message
+                    threading.Thread(
+                        target=self.audio.speak_compensation,
+                        args=(wm,), daemon=True,
+                    ).start()
+                    self._comp_cooldown = 90
+            except Exception:
+                pass
+
+        # 😴 Détection de fatigue
+        fatigue_info = exercise_state.get("fatigue_info")
+        if fatigue_info and not getattr(self, "_fatigue_alerted", False):
+            self._fatigue_alerted = True
+            msg = fatigue_info.get("message", "") + ". " + fatigue_info.get("suggestion", "")
+            threading.Thread(
+                target=self.audio.speak,
+                kwargs={"text": msg, "priority": True}, daemon=True,
+            ).start()
+            self._show_fatigue_alert(fatigue_info)
 
     def _update_panel(self, state: dict):
         """Met à jour les widgets du panneau latéral."""

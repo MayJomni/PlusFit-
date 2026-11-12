@@ -1,64 +1,86 @@
 """
 Wrapper MoveNet pour la détection de pose en temps réel.
 
-Charge le modèle MoveNet (Lightning ou Thunder) depuis TensorFlow Hub
-et fournit une interface simple pour détecter les poses image par image.
+Utilise le modèle MoveNet Lightning en format TFLite (local),
+sans nécessiter de connexion internet au démarrage.
 """
 
+import os
 import numpy as np
 import tensorflow as tf
 from typing import Optional, Tuple
 
 from pose_detection.keypoints import Keypoint
 
+# Chemin local du modèle TFLite
+_BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_MODEL_PATH = os.path.join(_BASE_DIR, "models", "movenet_lightning.tflite")
+_MODEL_URL = "https://tfhub.dev/google/lite-model/movenet/singlepose/lightning/tflite/float16/4?lite-format=tflite"
+
+
+def _ensure_model():
+    """Télécharge le modèle TFLite s'il n'est pas déjà présent."""
+    if os.path.exists(_MODEL_PATH) and os.path.getsize(_MODEL_PATH) > 100_000:
+        return  # déjà présent
+
+    os.makedirs(os.path.dirname(_MODEL_PATH), exist_ok=True)
+    print(f"[MoveNet] Téléchargement du modèle TFLite...")
+    try:
+        import requests
+        r = requests.get(_MODEL_URL, headers={"User-Agent": "Mozilla/5.0"},
+                         allow_redirects=True, timeout=60)
+        if r.status_code == 200 and len(r.content) > 100_000:
+            with open(_MODEL_PATH, "wb") as f:
+                f.write(r.content)
+            print(f"[MoveNet] Modèle sauvegardé ({len(r.content)//1024} KB)")
+        else:
+            raise RuntimeError(f"Téléchargement échoué: HTTP {r.status_code}")
+    except Exception as e:
+        raise RuntimeError(
+            f"Impossible de télécharger MoveNet TFLite.\n"
+            f"Vérifiez votre connexion internet.\nErreur: {e}"
+        )
+
 
 class MoveNetDetector:
     """
-    Détecteur de pose utilisant MoveNet (single-person).
+    Détecteur de pose utilisant MoveNet Lightning (TFLite).
+
+    Utilise le modèle local `models/movenet_lightning.tflite`.
+    Plus rapide et ne nécessite pas de connexion internet au démarrage.
 
     Attributes:
-        model_name: 'lightning' (rapide) ou 'thunder' (précis).
         min_confidence: Score minimum pour considérer un keypoint valide.
     """
 
-    # URLs des modèles sur TensorFlow Hub
-    MODEL_URLS = {
-        "lightning": "https://tfhub.dev/google/movenet/singlepose/lightning/4",
-        "thunder": "https://tfhub.dev/google/movenet/singlepose/thunder/4",
-    }
-
-    # Taille d'entrée attendue par chaque modèle
-    INPUT_SIZES = {
-        "lightning": 192,
-        "thunder": 256,
-    }
+    # Taille d'entrée MoveNet Lightning
+    INPUT_SIZE = 192
 
     def __init__(self, model_name: str = "lightning", min_confidence: float = 0.3):
         """
-        Initialise le détecteur MoveNet.
+        Initialise le détecteur MoveNet TFLite.
 
         Args:
-            model_name: 'lightning' ou 'thunder'.
+            model_name: ignoré (toujours lightning TFLite).
             min_confidence: Score de confiance minimum (0.0 à 1.0).
         """
-        if model_name not in self.MODEL_URLS:
-            raise ValueError(f"Modèle inconnu: {model_name}. Utilisez 'lightning' ou 'thunder'.")
-
         self.model_name = model_name
         self.min_confidence = min_confidence
-        self.input_size = self.INPUT_SIZES[model_name]
+        self.input_size = self.INPUT_SIZE
 
-        # Charger le modèle
-        print(f"[MoveNet] Chargement du modèle '{model_name}'...")
-        self._module = tf.saved_model.load(
-            tf.keras.utils.get_file(
-                f"movenet_{model_name}",
-                self.MODEL_URLS[model_name],
-                untar=True,
-            )
-        )
-        self._movenet = self._module.signatures["serving_default"]
-        print(f"[MoveNet] Modèle '{model_name}' chargé avec succès.")
+        # S'assurer que le modèle est disponible localement
+        _ensure_model()
+
+        # Charger l'interpréteur TFLite
+        print(f"[MoveNet] Chargement du modèle TFLite depuis {_MODEL_PATH}...")
+        self._interpreter = tf.lite.Interpreter(model_path=_MODEL_PATH)
+        self._interpreter.allocate_tensors()
+
+        # Récupérer les indices d'entrée/sortie
+        self._input_details = self._interpreter.get_input_details()
+        self._output_details = self._interpreter.get_output_details()
+
+        print("[MoveNet] Modèle TFLite prêt ✓")
 
         # Cache du dernier résultat
         self._last_keypoints: Optional[np.ndarray] = None
@@ -77,17 +99,25 @@ class MoveNetDetector:
         # Convertir BGR → RGB
         rgb = frame[:, :, ::-1]
 
-        # Redimensionner à la taille attendue
+        # Redimensionner à 192×192
         input_image = tf.image.resize_with_pad(
             tf.expand_dims(rgb, axis=0),
-            self.input_size,
-            self.input_size,
+            self.INPUT_SIZE,
+            self.INPUT_SIZE,
         )
-        input_image = tf.cast(input_image, dtype=tf.int32)
 
-        # Inférence
-        outputs = self._movenet(input_image)
-        keypoints = outputs["output_0"].numpy().squeeze()  # (17, 3)
+        # Le modèle TFLite float16 attend des uint8
+        input_data = tf.cast(input_image, dtype=tf.uint8).numpy()
+
+        # Inférence TFLite
+        self._interpreter.set_tensor(self._input_details[0]['index'], input_data)
+        self._interpreter.invoke()
+
+        # Résultat : (1, 1, 17, 3)
+        keypoints_raw = self._interpreter.get_tensor(
+            self._output_details[0]['index']
+        )
+        keypoints = keypoints_raw.squeeze()  # → (17, 3)
 
         self._last_keypoints = keypoints
         return keypoints

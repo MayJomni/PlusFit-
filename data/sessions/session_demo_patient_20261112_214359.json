@@ -1,0 +1,85 @@
+{
+  "session_id": "20261112_214359",
+  "patient_id": "demo_patient",
+  "date": "2026-11-12T21:43:59.359682",
+  "total_duration_seconds": 28.6,
+  "exercises_completed": 5,
+  "avg_score": 88.3,
+  "exercises": [
+    {
+      "exercise_name": "Transfert de poids latéral (debout)",
+      "total_reps": 8,
+      "target_reps": 8,
+      "avg_amplitude": 110.0,
+      "max_amplitude": 129.4,
+      "compensations_count": 0,
+      "duration_seconds": 4.0,
+      "score": 97.5,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Extension genou gauche + cognitif",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 104.9,
+      "max_amplitude": 131.4,
+      "compensations_count": 1,
+      "duration_seconds": 4.8,
+      "score": 91.2,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 1,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion épaule gauche",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 100.8,
+      "max_amplitude": 126.3,
+      "compensations_count": 3,
+      "duration_seconds": 4.8,
+      "score": 80.2,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 3,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Transfert de poids + cognitif",
+      "total_reps": 8,
+      "target_reps": 8,
+      "avg_amplitude": 113.6,
+      "max_amplitude": 131.2,
+      "compensations_count": 2,
+      "duration_seconds": 4.1,
+      "score": 88.4,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 2,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Extension genou gauche",
+      "total_reps": 10,
+      "target_reps": 10,
+      "avg_amplitude": 116.9,
+      "max_amplitude": 130.8,
+      "compensations_count": 3,
+      "duration_seconds": 4.8,
+      "score": 84.2,
+      "rep_details": [],
+      "compensation_summary": {
+        "total": 3,
+        "types": {}
+      }
+    }
+  ]
+}

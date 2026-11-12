@@ -33,7 +33,11 @@ from exercises.catalog import get_all_exercises, get_exercises_by_category, CATE
 from exercises.base import Exercise, ExerciseCategory
 from ui.mirror import draw_mirror_frame, draw_calibration_screen
 from ui.feedback import AudioFeedback
+from ui.silhouette import SilhouetteGuide
+from ui.voice_commands import VoiceCommandListener
+from ui.i18n import Translator
 from data.session_logger import SessionLogger
+from data.calendar import SessionCalendar
 
 
 # ─── Thème et constantes UI ───────────────────────────────────────────────────
@@ -101,6 +105,20 @@ class RehabMirrorGUI:
         # ── Audio ─────────────────────────────────────────────────────────
         self.audio = AudioFeedback(rate=config.SPEECH_RATE, enabled=config.AUDIO_ENABLED)
 
+        # ── Traducteur (multi-langues) ────────────────────────────────────
+        self.tr = Translator.get_instance(lang="fr")
+
+        # ── Calendrier ────────────────────────────────────────────────────
+        self.calendar = SessionCalendar()
+
+        # ── Commandes vocales ─────────────────────────────────────────────
+        self.voice_listener = VoiceCommandListener(
+            lang="fr", on_command=self._on_voice_command
+        )
+
+        # ── Silhouette guide ──────────────────────────────────────────────
+        self._silhouette: SilhouetteGuide | None = None
+
         # ── Session logger ────────────────────────────────────────────────
         self.session_logger = None
 
@@ -109,6 +127,12 @@ class RehabMirrorGUI:
         self._calibration_start = 0.0
         self._calibration_duration = 3
         self._last_keypoints = None
+
+        # ── Guidage vocal du mouvement ────────────────────────────────────
+        self._prev_angle = None       # Angle frame précédente
+        self._angle_history = []      # Historique angles (lissage sur 5 frames)
+        self._voice_phase = None      # Phase vocale actuelle ("montee"/"tenue"/"descente")
+        self._comp_cooldown = 0       # Anti-spam alertes compensation (en frames)
 
         # ── Construire les écrans ─────────────────────────────────────────
         self._current_frame = None
@@ -175,6 +199,22 @@ class RehabMirrorGUI:
             font=("Helvetica", 14), text_color="#666666",
         ).pack(side="bottom", pady=10)
 
+        # ── Sélecteur de langue ───────────────────────────────────────────
+        lang_frame = ctk.CTkFrame(frame, fg_color="transparent")
+        lang_frame.pack(side="bottom", pady=5)
+        ctk.CTkLabel(lang_frame, text="Langue / Language / اللغة / Idioma :",
+                     font=("Helvetica", 14), text_color="#888888").pack(side="left", padx=5)
+        for info in self.tr.get_all_langs():
+            code = info["code"]
+            ctk.CTkButton(
+                lang_frame,
+                text=f"{info['drapeau']} {info['nom']}",
+                font=("Helvetica", 14),
+                width=110, height=35, corner_radius=8,
+                fg_color=COLOR_ACCENT if code != self.tr.lang else COLOR_BLUE,
+                command=lambda c=code: self._change_lang(c),
+            ).pack(side="left", padx=3)
+
     def _on_start_session(self):
         """Callback du bouton COMMENCER."""
         self.patient_id = self._patient_entry.get().strip() or "patient"
@@ -182,7 +222,19 @@ class RehabMirrorGUI:
             log_dir=config.SESSION_LOG_DIR, patient_id=self.patient_id,
         )
         self.session_results = []
+        # Annonce séances du jour
+        today_sessions = self.calendar.get_today_sessions(self.patient_id)
+        if today_sessions:
+            nb = len(today_sessions)
+            self.audio.speak(f"Bonjour ! Vous avez {nb} séance{'s' if nb>1 else ''} prévue{'s' if nb>1 else ''} aujourd'hui.")
         self._build_exercise_selection()
+
+    def _change_lang(self, lang_code: str):
+        """Change la langue de l'interface."""
+        self.tr.set_lang(lang_code)
+        if hasattr(self, "voice_listener"):
+            self.voice_listener.set_lang(lang_code)
+        self._build_welcome_screen()  # Rafraîchit l'écran
 
     # ═══════════════════════════════════════════════════════════════════════
     #  ÉCRAN 2 : SÉLECTION D'EXERCICE
@@ -288,6 +340,11 @@ class RehabMirrorGUI:
         """Sélectionne un exercice et passe à l'écran d'exercice."""
         self.current_exercise_idx = idx
         self.current_exercise = self.exercises[idx]
+        # 🔊 Annonce vocale : description complète de l'exercice
+        self.audio.speak_introduction(self.current_exercise.name)
+        # 🎬 Silhouette animée pour cet exercice
+        self._silhouette = SilhouetteGuide(self.current_exercise.name)
+        self._fatigue_alerted = False
         self._build_exercise_screen()
 
     # ═══════════════════════════════════════════════════════════════════════
@@ -372,10 +429,12 @@ class RehabMirrorGUI:
         self._feedback_card = ctk.CTkFrame(panel, fg_color=COLOR_CARD, corner_radius=16)
         self._feedback_card.pack(fill="x", padx=10, pady=5)
 
+        # Affiche les instructions dès l'ouverture
+        instructions_text = self.current_exercise.get_instructions()
         self._feedback_label = ctk.CTkLabel(
             self._feedback_card,
-            text="Appuyez sur DEMARRER",
-            font=FONT_SMALL, text_color=COLOR_TEXT,
+            text=f"🔊 {instructions_text}",
+            font=FONT_SMALL, text_color="#aaddff",
             wraplength=280,
         )
         self._feedback_label.pack(pady=15, padx=10)
@@ -450,9 +509,10 @@ class RehabMirrorGUI:
             self._camera_running = True
             self.root.after(0, self._video_loop)
         except Exception as e:
-            print(f"[Erreur] Chargement MoveNet : {e}")
-            self.root.after(0, lambda: self._video_label.configure(
-                text=f"Erreur : {e}\n\nVerifiez l'installation de TensorFlow."
+            err_msg = str(e)
+            print(f"[Erreur] Chargement MoveNet : {err_msg}")
+            self.root.after(0, lambda msg=err_msg: self._video_label.configure(
+                text=f"Erreur : {msg}\n\nVerifiez l'installation de TensorFlow."
             ))
 
     def _video_loop(self):
@@ -484,6 +544,7 @@ class RehabMirrorGUI:
                 self.exercise_active = True
                 if keypoints is not None:
                     self.current_exercise.start(keypoints)
+                    # 🔊 Signal de départ dynamique
                     self.audio.speak_start(self.current_exercise.name)
                 self._start_btn.configure(state="disabled")
 
@@ -497,17 +558,66 @@ class RehabMirrorGUI:
             )
             self._update_panel(exercise_state)
 
+            # 🔊 Guidage vocal du mouvement (phase par phase)
+            angle = exercise_state.get("angle")
+            if angle is not None:
+                # Lissage sur 5 frames pour éviter les faux positifs
+                self._angle_history.append(angle)
+                if len(self._angle_history) > 5:
+                    self._angle_history.pop(0)
+                smooth_angle = sum(self._angle_history) / len(self._angle_history)
+
+                angle_start  = self.current_exercise.angle_start
+                angle_target = self.current_exercise.angle_target
+                angle_range  = angle_target - angle_start
+                pct = (smooth_angle - angle_start) / angle_range if angle_range else 0
+
+                # Déterminer la phase du mouvement
+                if self._prev_angle is not None:
+                    delta = smooth_angle - self._prev_angle
+                    if pct >= 0.85:
+                        new_phase = "tenue"
+                    elif delta > 0.5:
+                        new_phase = "montee"
+                    elif delta < -0.5:
+                        new_phase = "descente"
+                    else:
+                        new_phase = self._voice_phase  # Pas de changement
+
+                    if new_phase and new_phase != self._voice_phase:
+                        self._voice_phase = new_phase
+                        self.audio.speak_mouvement(
+                            self.current_exercise.name, new_phase
+                        )
+                self._prev_angle = smooth_angle
+
+            # 🔊 Comptage des répétitions
             if exercise_state.get("new_rep"):
+                self._prev_angle = None
+                self._angle_history = []
+                self._voice_phase = None
                 self.audio.speak_rep(
                     exercise_state["reps"], exercise_state["target_reps"]
                 )
-            if exercise_state.get("compensations"):
+
+            # 🔊 Alertes de compensation (anti-spam : 1 alerte / 90 frames)
+            self._comp_cooldown = max(0, self._comp_cooldown - 1)
+            if exercise_state.get("compensations") and self._comp_cooldown == 0:
                 worst = max(
                     exercise_state["compensations"],
                     key=lambda a: {"mild": 0, "moderate": 1, "severe": 2}[a.severity],
                 )
                 if worst.severity in ("moderate", "severe"):
                     self.audio.speak_compensation(worst.message)
+                    self._comp_cooldown = 90  # ~3 secondes à 30fps
+
+            # 😴 Détection de fatigue
+            fatigue_info = exercise_state.get("fatigue_info")
+            if fatigue_info and not getattr(self, "_fatigue_alerted", False):
+                self._fatigue_alerted = True
+                msg = fatigue_info["message"] + ". " + fatigue_info["suggestion"]
+                self.audio.speak(msg, priority=True)
+                self._show_fatigue_alert(fatigue_info)
 
             if exercise_state.get("completed"):
                 self._on_exercise_complete()
@@ -516,6 +626,10 @@ class RehabMirrorGUI:
                 frame, keypoints,
                 min_confidence=config.MIN_CONFIDENCE,
             )
+
+        # 🎨 Silhouette guide animée (toujours affichée quand exercice sélectionné)
+        if self._silhouette is not None:
+            display = self._silhouette.draw(display, x=15, y=15)
 
         # Convertir pour affichage Tkinter
         display_rgb = cv2.cvtColor(display, cv2.COLOR_BGR2RGB)
@@ -566,7 +680,13 @@ class RehabMirrorGUI:
         """Lance la calibration puis l'exercice."""
         self._calibrating = True
         self._calibration_start = time.time()
-        self.audio.speak("Preparez-vous. Restez bien droit.")
+        # Reset guidage vocal
+        self._prev_angle = None
+        self._angle_history = []
+        self._voice_phase = None
+        self._comp_cooldown = 0
+        # 🔊 Instructions de calibration
+        self.audio.speak_calibration()
 
     def _on_exercise_stop(self):
         """Arrête l'exercice en cours."""
@@ -585,7 +705,9 @@ class RehabMirrorGUI:
         self.session_results.append(result)
         if self.session_logger:
             self.session_logger.log_exercise(result)
+        # 🔊 Bilan vocal du score + invitation à continuer
         self.audio.speak_end(result.score)
+        self.root.after(3000, lambda: self.audio.speak_pause())
         self._build_result_screen(result)
 
     def _on_back_to_selection(self):
@@ -693,6 +815,11 @@ class RehabMirrorGUI:
         """Écran récapitulatif de la session complète."""
         self._clear_screen()
         self._camera_running = False
+
+        # 🔊 Résumé vocal de la session
+        if self.session_results:
+            avg = sum(r.score for r in self.session_results) / len(self.session_results)
+            self.audio.speak_session_end(len(self.session_results), avg)
 
         frame = ctk.CTkFrame(self.root, fg_color=COLOR_BG)
         frame.pack(expand=True, fill="both", padx=40, pady=20)
@@ -822,10 +949,44 @@ class RehabMirrorGUI:
         if self.cap and self.cap.isOpened():
             self.cap.release()
         self.audio.stop()
+        if hasattr(self, "voice_listener"):
+            self.voice_listener.stop()
+
+    def _on_voice_command(self, command: str):
+        """Callback des commandes vocales — exécuté dans le thread principal."""
+        def _exec():
+            if command == "demarrer" and not self.exercise_active and not self._calibrating:
+                self._on_exercise_start()
+            elif command == "arreter":
+                self._on_exercise_stop()
+            elif command == "suivant":
+                next_idx = (self.current_exercise_idx + 1) % len(self.exercises)
+                self._select_exercise(next_idx)
+            elif command == "retour":
+                self._on_back_to_selection()
+            elif command == "pause":
+                self._on_exercise_stop()
+        self.root.after(0, _exec)
+
+    def _show_fatigue_alert(self, fatigue_info: dict):
+        """Affiche une alerte de fatigue dans le panneau latéral."""
+        try:
+            niveau = fatigue_info.get("niveau", "moderee")
+            couleur = "#4a1a00" if niveau == "severe" else "#3d2e00"
+            self._feedback_card.configure(fg_color=couleur)
+            self._feedback_label.configure(
+                text=f"😴 {fatigue_info['message']}\n{fatigue_info['suggestion']}",
+                text_color="#FFB74D",
+            )
+        except Exception:
+            pass
 
     def run(self):
         """Lance l'application."""
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
+        # Démarrer l'écoute vocale si disponible
+        if hasattr(self, "voice_listener"):
+            self.voice_listener.start()
         self.root.mainloop()
 
     def _on_close(self):

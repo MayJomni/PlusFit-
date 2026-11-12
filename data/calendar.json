@@ -1,0 +1,39 @@
+{
+  "patient001": {
+    "sessions_planifiees": [
+      {
+        "id": "a2ee2a1c-1e5c-47e9-813d-1317d3a6d266",
+        "jour": "lundi",
+        "heure": "10:00",
+        "exercises": [
+          "Flexion épaule gauche",
+          "Extension genou gauche"
+        ],
+        "recurrent": true,
+        "completions": []
+      },
+      {
+        "id": "465fb23d-2c30-484e-aeaa-49c2908513be",
+        "jour": "mercredi",
+        "heure": "14:30",
+        "exercises": [
+          "Abduction épaule droite",
+          "Flexion coude gauche"
+        ],
+        "recurrent": true,
+        "completions": []
+      },
+      {
+        "id": "2fa60486-8aa9-4f52-abb6-184f8fe85547",
+        "jour": "vendredi",
+        "heure": "11:00",
+        "exercises": [
+          "Transfert de poids latéral (debout)",
+          "Extension genou droit"
+        ],
+        "recurrent": true,
+        "completions": []
+      }
+    ]
+  }
+}

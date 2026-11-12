@@ -1,0 +1,79 @@
+{
+  "session_id": "20261112_221517",
+  "patient_id": "may jomni",
+  "date": "2026-11-12T22:17:46.111066",
+  "total_duration_seconds": 148.7,
+  "exercises_completed": 1,
+  "avg_score": 54.0,
+  "exercises": [
+    {
+      "exercise_name": "Flexion épaule droit",
+      "total_reps": 6,
+      "target_reps": 10,
+      "avg_amplitude": 164.7,
+      "max_amplitude": 169.5,
+      "compensations_count": 352,
+      "duration_seconds": 74.2,
+      "score": 54.0,
+      "rep_details": [
+        {
+          "rep_number": 1,
+          "max_angle": 170.5229210783862,
+          "min_angle": 2.391383211584939,
+          "amplitude": 168.13153786680124,
+          "duration_seconds": 17.76,
+          "timestamp": 1794518158.8655717
+        },
+        {
+          "rep_number": 2,
+          "max_angle": 166.17331571533106,
+          "min_angle": 11.367077396242866,
+          "amplitude": 154.80623831908818,
+          "duration_seconds": 9.88,
+          "timestamp": 1794518168.9418855
+        },
+        {
+          "rep_number": 3,
+          "max_angle": 179.4751133458133,
+          "min_angle": 16.910560032154976,
+          "amplitude": 162.56455331365834,
+          "duration_seconds": 4.9,
+          "timestamp": 1794518174.0237353
+        },
+        {
+          "rep_number": 4,
+          "max_angle": 179.88465010218255,
+          "min_angle": 15.398043095042304,
+          "amplitude": 164.48660700714024,
+          "duration_seconds": 4.73,
+          "timestamp": 1794518178.9493563
+        },
+        {
+          "rep_number": 5,
+          "max_angle": 179.98021765897056,
+          "min_angle": 10.490137564171755,
+          "amplitude": 169.4900800947988,
+          "duration_seconds": 16.96,
+          "timestamp": 1794518196.0957673
+        },
+        {
+          "rep_number": 6,
+          "max_angle": 178.5887469740561,
+          "min_angle": 10.065775512008264,
+          "amplitude": 168.52297146204785,
+          "duration_seconds": 3.13,
+          "timestamp": 1794518199.4437044
+        }
+      ],
+      "compensation_summary": {
+        "total": 352,
+        "types": {
+          "HIP_SHIFT": {
+            "count": 352,
+            "max_severity": "severe"
+          }
+        }
+      }
+    }
+  ]
+}

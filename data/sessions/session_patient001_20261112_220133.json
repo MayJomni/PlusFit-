@@ -1,0 +1,167 @@
+{
+  "session_id": "20261112_220133",
+  "patient_id": "patient001",
+  "date": "2026-11-12T22:13:20.242958",
+  "total_duration_seconds": 707.0,
+  "exercises_completed": 2,
+  "avg_score": 61.0,
+  "exercises": [
+    {
+      "exercise_name": "Flexion épaule droit",
+      "total_reps": 1,
+      "target_reps": 10,
+      "avg_amplitude": 177.3,
+      "max_amplitude": 177.3,
+      "compensations_count": 0,
+      "duration_seconds": 137.5,
+      "score": 64.0,
+      "rep_details": [
+        {
+          "rep_number": 1,
+          "max_angle": 161.8086694129563,
+          "min_angle": 10.85119147001347,
+          "amplitude": 150.95747794294283,
+          "duration_seconds": 24.25,
+          "timestamp": 1794517609.62738
+        },
+        {
+          "rep_number": 2,
+          "max_angle": 170.06444915901324,
+          "min_angle": 0.0625572578997782,
+          "amplitude": 170.00189190111345,
+          "duration_seconds": 86.05,
+          "timestamp": 1794517695.8604562
+        },
+        {
+          "rep_number": 3,
+          "max_angle": 166.38878292555097,
+          "min_angle": 2.0405678480084557,
+          "amplitude": 164.3482150775425,
+          "duration_seconds": 12.35,
+          "timestamp": 1794517708.5591736
+        },
+        {
+          "rep_number": 4,
+          "max_angle": 152.12339374370958,
+          "min_angle": 11.99279647235295,
+          "amplitude": 140.13059727135663,
+          "duration_seconds": 19.97,
+          "timestamp": 1794517728.700231
+        },
+        {
+          "rep_number": 5,
+          "max_angle": 165.4996988053928,
+          "min_angle": 13.068594978693268,
+          "amplitude": 152.43110382669954,
+          "duration_seconds": 5.3,
+          "timestamp": 1794517734.1843405
+        },
+        {
+          "rep_number": 6,
+          "max_angle": 163.87090833182748,
+          "min_angle": 11.896929084290566,
+          "amplitude": 151.9739792475369,
+          "duration_seconds": 11.24,
+          "timestamp": 1794517745.6020405
+        },
+        {
+          "rep_number": 7,
+          "max_angle": 159.19138195678772,
+          "min_angle": 11.85318202403563,
+          "amplitude": 147.3381999327521,
+          "duration_seconds": 5.06,
+          "timestamp": 1794517750.856547
+        }
+      ],
+      "compensation_summary": {
+        "total": 0,
+        "types": {}
+      }
+    },
+    {
+      "exercise_name": "Flexion épaule droit",
+      "total_reps": 7,
+      "target_reps": 10,
+      "avg_amplitude": 153.9,
+      "max_amplitude": 170.0,
+      "compensations_count": 1145,
+      "duration_seconds": 362.4,
+      "score": 58.0,
+      "rep_details": [
+        {
+          "rep_number": 1,
+          "max_angle": 161.8086694129563,
+          "min_angle": 10.85119147001347,
+          "amplitude": 150.95747794294283,
+          "duration_seconds": 24.25,
+          "timestamp": 1794517609.62738
+        },
+        {
+          "rep_number": 2,
+          "max_angle": 170.06444915901324,
+          "min_angle": 0.0625572578997782,
+          "amplitude": 170.00189190111345,
+          "duration_seconds": 86.05,
+          "timestamp": 1794517695.8604562
+        },
+        {
+          "rep_number": 3,
+          "max_angle": 166.38878292555097,
+          "min_angle": 2.0405678480084557,
+          "amplitude": 164.3482150775425,
+          "duration_seconds": 12.35,
+          "timestamp": 1794517708.5591736
+        },
+        {
+          "rep_number": 4,
+          "max_angle": 152.12339374370958,
+          "min_angle": 11.99279647235295,
+          "amplitude": 140.13059727135663,
+          "duration_seconds": 19.97,
+          "timestamp": 1794517728.700231
+        },
+        {
+          "rep_number": 5,
+          "max_angle": 165.4996988053928,
+          "min_angle": 13.068594978693268,
+          "amplitude": 152.43110382669954,
+          "duration_seconds": 5.3,
+          "timestamp": 1794517734.1843405
+        },
+        {
+          "rep_number": 6,
+          "max_angle": 163.87090833182748,
+          "min_angle": 11.896929084290566,
+          "amplitude": 151.9739792475369,
+          "duration_seconds": 11.24,
+          "timestamp": 1794517745.6020405
+        },
+        {
+          "rep_number": 7,
+          "max_angle": 159.19138195678772,
+          "min_angle": 11.85318202403563,
+          "amplitude": 147.3381999327521,
+          "duration_seconds": 5.06,
+          "timestamp": 1794517750.856547
+        }
+      ],
+      "compensation_summary": {
+        "total": 1145,
+        "types": {
+          "HIP_SHIFT": {
+            "count": 936,
+            "max_severity": "severe"
+          },
+          "SHOULDER_ELEVATION": {
+            "count": 182,
+            "max_severity": "severe"
+          },
+          "TRUNK_LEAN": {
+            "count": 27,
+            "max_severity": "severe"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -96,6 +96,9 @@ class Exercise(ABC):
         self._feedback_message = ""
         self._feedback_color = "#FFFFFF"
 
+        # Tracking de fatigue
+        self._rep_amplitudes: list = []
+
     @abstractmethod
     def get_angle(self, keypoints: np.ndarray) -> Optional[float]:
         """
@@ -131,6 +134,7 @@ class Exercise(ABC):
         self.compensation_detector.calibrate(keypoints)
         self._started = True
         self._start_time = time.time()
+        self._rep_amplitudes = []
         print(f"[Exercice] '{self.name}' démarré.")
 
     def update(self, keypoints: np.ndarray) -> dict:
@@ -164,6 +168,11 @@ class Exercise(ABC):
         # Compter les reps
         new_rep = self.rep_counter.update(angle)
 
+        # Stocker l'amplitude de la nouvelle rep
+        if new_rep is not None and self.rep_counter.rep_history:
+            last_rep = self.rep_counter.rep_history[-1]
+            self._rep_amplitudes.append(last_rep["amplitude"])
+
         # Vérifier les compensations
         alerts = self.compensation_detector.check(keypoints)
         self._current_alerts = alerts
@@ -173,7 +182,7 @@ class Exercise(ABC):
 
         completed = self.rep_counter.count >= self.target_reps
 
-        return {
+        result = {
             "angle": angle,
             "reps": self.rep_counter.count,
             "target_reps": self.target_reps,
@@ -184,6 +193,14 @@ class Exercise(ABC):
             "feedback_color": self._feedback_color,
             "completed": completed,
         }
+
+        # Ajouter fatigue_info seulement après au moins 4 reps
+        if len(self._rep_amplitudes) >= 4:
+            fatigue_info = self.detect_fatigue()
+            if fatigue_info["fatigue"]:
+                result["fatigue_info"] = fatigue_info
+
+        return result
 
     def _update_feedback(
         self,
@@ -219,6 +236,41 @@ class Exercise(ABC):
         else:
             self._feedback_message = "Placez-vous face à la caméra"
             self._feedback_color = "#FF9800"
+
+    def detect_fatigue(self) -> dict:
+        """
+        Détecte la fatigue en analysant la baisse d'amplitude sur les reps.
+
+        Compare l'amplitude moyenne des 3 premières vs 3 dernières reps.
+        Retourne un dict avec niveau de fatigue et message.
+        """
+        amps = self._rep_amplitudes
+        if len(amps) < 4:
+            return {"fatigue": False, "niveau": "none", "message": "", "suggestion": ""}
+
+        premiers = sum(amps[:3]) / 3
+        derniers  = sum(amps[-3:]) / 3
+
+        if premiers == 0:
+            return {"fatigue": False, "niveau": "none", "message": "", "suggestion": ""}
+
+        ratio = derniers / premiers
+
+        if ratio < 0.60:
+            return {
+                "fatigue": True,
+                "niveau": "severe",
+                "message": "Vous semblez très fatigué(e), votre amplitude a beaucoup baissé.",
+                "suggestion": "Je vous recommande d'arrêter et de vous reposer.",
+            }
+        elif ratio < 0.75:
+            return {
+                "fatigue": True,
+                "niveau": "moderee",
+                "message": "Votre amplitude diminue, signe de fatigue.",
+                "suggestion": "Faites une pause de 30 secondes avant de continuer.",
+            }
+        return {"fatigue": False, "niveau": "none", "message": "", "suggestion": ""}
 
     def get_result(self) -> ExerciseResult:
         """Génère le résultat final de l'exercice."""

@@ -534,7 +534,8 @@ class RehabMirrorGUI:
         # Traitement selon l'état
         if self._calibrating:
             elapsed = time.time() - self._calibration_start
-            countdown = max(1, self._calibration_duration - int(elapsed))
+            remaining = self._calibration_duration - int(elapsed)
+            countdown = max(1, remaining)
             display = draw_calibration_screen(
                 frame, keypoints, countdown=countdown,
                 min_confidence=config.MIN_CONFIDENCE,
@@ -544,8 +545,13 @@ class RehabMirrorGUI:
                 self.exercise_active = True
                 if keypoints is not None:
                     self.current_exercise.start(keypoints)
-                    # 🔊 Signal de départ dynamique
-                    self.audio.speak_start(self.current_exercise.name)
+                    # 🔊 Signal de départ — dans un thread pour ne pas bloquer l'UI
+                    ex_name = self.current_exercise.name
+                    threading.Thread(
+                        target=self.audio.speak_start,
+                        args=(ex_name,),
+                        daemon=True,
+                    ).start()
                 self._start_btn.configure(state="disabled")
 
         elif self.exercise_active:
@@ -558,7 +564,7 @@ class RehabMirrorGUI:
             )
             self._update_panel(exercise_state)
 
-            # 🔊 Guidage vocal du mouvement (phase par phase)
+            # 🔊 Guidage vocal du mouvement (phase par phase) — thread pour ne pas bloquer
             angle = exercise_state.get("angle")
             if angle is not None:
                 # Lissage sur 5 frames pour éviter les faux positifs
@@ -586,21 +592,27 @@ class RehabMirrorGUI:
 
                     if new_phase and new_phase != self._voice_phase:
                         self._voice_phase = new_phase
-                        self.audio.speak_mouvement(
-                            self.current_exercise.name, new_phase
-                        )
+                        ex_n = self.current_exercise.name
+                        threading.Thread(
+                            target=self.audio.speak_mouvement,
+                            args=(ex_n, new_phase),
+                            daemon=True,
+                        ).start()
                 self._prev_angle = smooth_angle
 
-            # 🔊 Comptage des répétitions
+            # 🔊 Comptage des répétitions — thread
             if exercise_state.get("new_rep"):
                 self._prev_angle = None
                 self._angle_history = []
                 self._voice_phase = None
-                self.audio.speak_rep(
-                    exercise_state["reps"], exercise_state["target_reps"]
-                )
+                r, t = exercise_state["reps"], exercise_state["target_reps"]
+                threading.Thread(
+                    target=self.audio.speak_rep,
+                    args=(r, t),
+                    daemon=True,
+                ).start()
 
-            # 🔊 Alertes de compensation (anti-spam : 1 alerte / 90 frames)
+            # 🔊 Alertes de compensation (anti-spam : 1 alerte / 90 frames) — thread
             self._comp_cooldown = max(0, self._comp_cooldown - 1)
             if exercise_state.get("compensations") and self._comp_cooldown == 0:
                 worst = max(
@@ -608,15 +620,24 @@ class RehabMirrorGUI:
                     key=lambda a: {"mild": 0, "moderate": 1, "severe": 2}[a.severity],
                 )
                 if worst.severity in ("moderate", "severe"):
-                    self.audio.speak_compensation(worst.message)
+                    wm = worst.message
+                    threading.Thread(
+                        target=self.audio.speak_compensation,
+                        args=(wm,),
+                        daemon=True,
+                    ).start()
                     self._comp_cooldown = 90  # ~3 secondes à 30fps
 
-            # 😴 Détection de fatigue
+            # 😴 Détection de fatigue — thread
             fatigue_info = exercise_state.get("fatigue_info")
             if fatigue_info and not getattr(self, "_fatigue_alerted", False):
                 self._fatigue_alerted = True
                 msg = fatigue_info["message"] + ". " + fatigue_info["suggestion"]
-                self.audio.speak(msg, priority=True)
+                threading.Thread(
+                    target=self.audio.speak,
+                    kwargs={"text": msg, "priority": True},
+                    daemon=True,
+                ).start()
                 self._show_fatigue_alert(fatigue_info)
 
             if exercise_state.get("completed"):
@@ -685,8 +706,8 @@ class RehabMirrorGUI:
         self._angle_history = []
         self._voice_phase = None
         self._comp_cooldown = 0
-        # 🔊 Instructions de calibration
-        self.audio.speak_calibration()
+        # 🔊 Instructions de calibration — thread pour ne pas bloquer
+        threading.Thread(target=self.audio.speak_calibration, daemon=True).start()
 
     def _on_exercise_stop(self):
         """Arrête l'exercice en cours."""
@@ -705,9 +726,11 @@ class RehabMirrorGUI:
         self.session_results.append(result)
         if self.session_logger:
             self.session_logger.log_exercise(result)
-        # 🔊 Bilan vocal du score + invitation à continuer
-        self.audio.speak_end(result.score)
-        self.root.after(3000, lambda: self.audio.speak_pause())
+        # 🔊 Bilan vocal du score + invitation à continuer — threads
+        sc = result.score
+        threading.Thread(target=self.audio.speak_end, args=(sc,), daemon=True).start()
+        self.root.after(3000, lambda: threading.Thread(
+            target=self.audio.speak_pause, daemon=True).start())
         self._build_result_screen(result)
 
     def _on_back_to_selection(self):
